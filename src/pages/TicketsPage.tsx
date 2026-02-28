@@ -222,7 +222,7 @@ const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
                                         <p className="text-text-muted text-xs font-bold uppercase tracking-widest">{ticket.customers?.full_name || 'Unknown'} • {ticket.customers?.phone || 'N/A'}</p>
                                     </div>
 
-                                    <div className="p-3 bg-black/30 rounded-xl text-xs italic text-text-muted border-l-2 border-ltt-orange group-hover:bg-black/50 transition-all font-medium truncate">
+                                    <div className="p-3 bg-black/30 rounded-xl text-xs italic text-text-muted border-l-2 border-ltt-orange group-hover:bg-black/50 transition-all font-medium">
                                         "{ticket.probing_history?.faults?.join(', ') || 'Pending initial diagnostic check'}"
                                     </div>
 
