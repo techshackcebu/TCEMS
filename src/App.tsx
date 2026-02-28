@@ -22,6 +22,7 @@ import { LayoutGrid, ClipboardCheck, Users, Box, Settings, LogOut, Users2, Landm
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
+  const [userRole, setUserRole] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState('Intake');
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -31,10 +32,13 @@ const App: React.FC = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session) fetchUserRole(session.user.id);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) fetchUserRole(session.user.id);
+      else setUserRole(null);
     });
 
     // Offline handlers
@@ -54,6 +58,11 @@ const App: React.FC = () => {
     }
   }, []);
 
+  const fetchUserRole = async (userId: string) => {
+    const { data } = await supabase.from('profiles').select('role_id').eq('id', userId).single();
+    if (data) setUserRole(data.role_id);
+  };
+
   const checkSyncCount = async () => {
     const count = await localDB.syncQueue.where('status').equals('pending').count();
     setPendingSyncCount(count);
@@ -68,7 +77,6 @@ const App: React.FC = () => {
         if (task.action === 'insert') {
           await supabase.from(task.table).insert(task.payload);
         } else if (task.action === 'update') {
-          // Assuming payload has id for update
           await supabase.from(task.table).update(task.payload).eq('id', task.payload.id);
         }
         await localDB.syncQueue.delete(task.local_id!);
@@ -80,24 +88,26 @@ const App: React.FC = () => {
     setIsSyncing(false);
   };
 
-  const menuItems = [
-    { name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Intake', icon: <QrCode size={20} /> },
-    { name: 'Repair Tickets', icon: <Smartphone size={20} /> },
-    { name: 'Parts Inquiry', icon: <Search size={20} /> },
-    { name: 'POS / Billing', icon: <CreditCard size={20} /> },
-    { name: 'Kiosk Terminal', icon: <Monitor size={20} /> },
-    { name: 'Employee Portal', icon: <User size={20} /> },
-    { name: 'Track Repair', icon: <Search size={20} /> },
-    { name: 'Inventory', icon: <Package size={20} /> },
-    { name: 'Employees', icon: <Users2 size={20} /> },
-    { name: 'Payroll', icon: <FileText size={20} /> },
-    { name: 'Investors', icon: <Landmark size={20} /> },
-    { name: 'Earnings', icon: <ShieldCheck size={20} /> },
-    { name: 'Analytics', icon: <PieChart size={20} /> },
-    { name: 'Customers', icon: <Users size={20} /> },
-    { name: 'Settings', icon: <Settings size={20} /> },
+  const allMenuItems = [
+    { name: 'Dashboard', icon: <LayoutDashboard size={20} />, roles: [1, 2, 3, 4, 5, 6, 7] },
+    { name: 'Intake', icon: <QrCode size={20} />, roles: [1, 5, 6] },
+    { name: 'Repair Tickets', icon: <Smartphone size={20} />, roles: [1, 3, 4, 5, 6] },
+    { name: 'Parts Inquiry', icon: <Search size={20} />, roles: [1, 3, 4, 5, 6] },
+    { name: 'POS / Billing', icon: <CreditCard size={20} />, roles: [1, 5, 6] },
+    { name: 'Kiosk Terminal', icon: <Monitor size={20} />, roles: [1, 3, 4, 5, 6, 7] },
+    { name: 'Employee Portal', icon: <User size={20} />, roles: [1, 2, 3, 4, 5, 6, 7] },
+    { name: 'Track Repair', icon: <Search size={20} />, roles: [1, 5] },
+    { name: 'Inventory', icon: <Package size={20} />, roles: [1, 4, 6] },
+    { name: 'Employees', icon: <Users2 size={20} />, roles: [1, 2, 6] },
+    { name: 'Payroll', icon: <FileText size={20} />, roles: [1, 2, 6] },
+    { name: 'Investors', icon: <Landmark size={20} />, roles: [1] },
+    { name: 'Earnings', icon: <ShieldCheck size={20} />, roles: [1] },
+    { name: 'Analytics', icon: <PieChart size={20} />, roles: [1, 6] },
+    { name: 'Customers', icon: <Users size={20} />, roles: [1, 5, 6] },
+    { name: 'Settings', icon: <Settings size={20} />, roles: [1, 6] },
   ];
+
+  const menuItems = allMenuItems.filter(item => userRole ? item.roles.includes(userRole) : false);
 
   if (!session) return <LoginPage />;
 
@@ -158,8 +168,8 @@ const App: React.FC = () => {
             </div>
             {/* NETWORK STATUS INDICATOR */}
             <div className={`p-2 rounded-xl border flex flex-col items-center justify-center transition-colors ${isOnline
-                ? 'bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]'
-                : 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)] animate-pulse'
+              ? 'bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]'
+              : 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)] animate-pulse'
               }`} title={isOnline ? "System Online & Synced" : "System Offline - Local Mode"}>
               {isSyncing ? <RefreshCw size={16} className="animate-spin" /> : (isOnline ? <Wifi size={16} /> : <WifiOff size={16} />)}
               {pendingSyncCount > 0 && <span className="text-[8px] font-black mt-1 uppercase tracking-widest">{pendingSyncCount} QUEUED</span>}

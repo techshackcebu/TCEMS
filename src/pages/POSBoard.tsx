@@ -8,10 +8,13 @@ import {
     X,
     ArrowRight,
     Printer,
-    Calculator
+    Calculator,
+    Download,
+    FileText
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { generateReceiptPDF } from '../lib/pdf';
 import ThermalLabel from '../components/ThermalLabel';
 
 interface Ticket {
@@ -263,9 +266,17 @@ const POSBoard: React.FC = () => {
                                 <button
                                     onClick={() => window.print()}
                                     className="p-4 bg-white/5 rounded-2xl text-text-muted hover:text-white hover:bg-white/10 transition-all shadow-xl shadow-black/20"
-                                    title="Print Estimate/Receipt"
+                                    title="Quick Print"
                                 >
                                     <Printer size={20} />
+                                </button>
+
+                                <button
+                                    onClick={() => generateReceiptPDF(selectedTicket, calculateTotals(selectedTicket))}
+                                    className="p-4 bg-white/5 rounded-2xl text-text-muted hover:text-white hover:bg-white/10 transition-all shadow-xl shadow-black/20"
+                                    title="Download PDF Receipt"
+                                >
+                                    <FileText size={20} />
                                 </button>
 
                                 {/* Hidden print target */}
