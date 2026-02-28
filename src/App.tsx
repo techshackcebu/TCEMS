@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import DashboardPage from './pages/DashboardPage';
+import KioskTerminal from './pages/KioskTerminal';
+import EmployeePortal from './pages/EmployeePortal';
 import IntakePage from './pages/IntakePage';
 import TicketsPage from './pages/TicketsPage';
 import LoginPage from './pages/LoginPage';
+import PartsBoard from './pages/PartsBoard';
+import POSBoard from './pages/POSBoard';
+import TrackPage from './pages/TrackPage';
+import InventoryBoard from './pages/InventoryBoard';
+import EmployeesPage from './pages/EmployeesPage';
+import PayrollPage from './pages/PayrollPage';
+import InvestorPage from './pages/InvestorPage';
+import EarningsPage from './pages/EarningsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import DiagnosticFlow from './components/DiagnosticFlow';
 import { supabase } from './lib/supabase';
-import { Session } from '@supabase/supabase-js';
-import { LayoutGrid, ClipboardCheck, Users, Box, Settings, LogOut, PackageSearch, Receipt, Users2, Landmark, History, FileText, ChevronLeft } from 'lucide-react';
+import type { Session } from '@supabase/supabase-js';
+import { LayoutGrid, ClipboardCheck, Users, Box, Settings, LogOut, Users2, Landmark, History, FileText, ChevronLeft, Package, CreditCard, Search, ShieldCheck, LayoutDashboard, QrCode, Smartphone, Monitor, User, PieChart } from 'lucide-react';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -25,16 +37,21 @@ const App: React.FC = () => {
   }, []);
 
   const menuItems = [
-    { name: 'Dashboard', icon: <LayoutGrid size={20} /> },
-    { name: 'Intake', icon: <ClipboardCheck size={20} /> },
-    { name: 'Repair Tickets', icon: <Box size={20} /> },
-    { name: 'Customers', icon: <Users size={20} /> },
-    { name: 'Parts Inquiry', icon: <PackageSearch size={20} /> },
-    { name: 'POS', icon: <Receipt size={20} /> },
-    { name: 'Inventory', icon: <History size={20} /> },
+    { name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+    { name: 'Intake', icon: <QrCode size={20} /> },
+    { name: 'Repair Tickets', icon: <Smartphone size={20} /> },
+    { name: 'Parts Inquiry', icon: <Search size={20} /> },
+    { name: 'POS / Billing', icon: <CreditCard size={20} /> },
+    { name: 'Kiosk Terminal', icon: <Monitor size={20} /> },
+    { name: 'Employee Portal', icon: <User size={20} /> },
+    { name: 'Track Repair', icon: <Search size={20} /> },
+    { name: 'Inventory', icon: <Package size={20} /> },
     { name: 'Employees', icon: <Users2 size={20} /> },
-    { name: 'Investors', icon: <Landmark size={20} /> },
     { name: 'Payroll', icon: <FileText size={20} /> },
+    { name: 'Investors', icon: <Landmark size={20} /> },
+    { name: 'Earnings', icon: <ShieldCheck size={20} /> },
+    { name: 'Analytics', icon: <PieChart size={20} /> },
+    { name: 'Customers', icon: <Users size={20} /> },
     { name: 'Settings', icon: <Settings size={20} /> },
   ];
 
@@ -58,8 +75,20 @@ const App: React.FC = () => {
     }
 
     switch (currentPage) {
+      case 'Dashboard': return <DashboardPage />;
       case 'Intake': return <IntakePage />;
       case 'Repair Tickets': return <TicketsPage onSelectTicket={setSelectedTicketId} />;
+      case 'Parts Inquiry': return <PartsBoard />;
+      case 'POS / Billing': return <POSBoard />;
+      case 'Kiosk Terminal': return <KioskTerminal />;
+      case 'Employee Portal': return <EmployeePortal />;
+      case 'Track Repair': return <TrackPage />;
+      case 'Inventory': return <InventoryBoard />;
+      case 'Employees': return <EmployeesPage />;
+      case 'Payroll': return <PayrollPage />;
+      case 'Investors': return <InvestorPage />;
+      case 'Earnings': return <EarningsPage />;
+      case 'Analytics': return <AnalyticsPage />;
       default: return (
         <div className="flex flex-col items-center justify-center p-20 text-center space-y-4">
           <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-ltt-orange animate-pulse">
@@ -91,8 +120,8 @@ const App: React.FC = () => {
                 key={item.name}
                 onClick={() => { setCurrentPage(item.name); setSelectedTicketId(null); }}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-sm font-bold ${currentPage === item.name
-                    ? 'bg-ltt-orange text-white shadow-lg shadow-ltt-orange/20'
-                    : 'text-text-muted hover:bg-white/5 hover:text-white'
+                  ? 'bg-ltt-orange text-white shadow-lg shadow-ltt-orange/20'
+                  : 'text-text-muted hover:bg-white/5 hover:text-white'
                   }`}
               >
                 {item.icon}
