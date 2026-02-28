@@ -17,7 +17,7 @@ import {
     RefreshCw,
     Calendar
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
 interface WarRoomStats {
@@ -39,6 +39,7 @@ const DashboardPage: React.FC = () => {
         investorYieldTotal: 28400
     });
     const [loading, setLoading] = useState(false);
+    const [showAudit, setShowAudit] = useState(false);
 
     React.useEffect(() => {
         const fetchStats = async () => {
@@ -117,11 +118,58 @@ const DashboardPage: React.FC = () => {
                     </div>
 
                     <button
-                        onClick={() => alert("Enterprise Audit Ledger: Accessing historical financial nodes... [SYSTEM MOCK]")}
+                        onClick={() => setShowAudit(true)}
                         className="flex-1 lg:flex-none h-14 px-8 bg-white/5 hover:bg-white/10 border border-glass-border rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 transition-all"
                     >
                         <History size={18} /> Audit Ledger
                     </button>
+
+                    {/* AUDIT MODAL */}
+                    <AnimatePresence>
+                        {showAudit && (
+                            <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-6">
+                                <motion.div
+                                    initial={{ scale: 0.9, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    className="glass-card w-full max-w-4xl p-10 space-y-6"
+                                >
+                                    <div className="flex justify-between items-center border-b border-white/5 pb-4 text-left">
+                                        <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2"><History className="text-ltt-orange" /> Enterprise Audit Ledger</h2>
+                                        <button onClick={() => setShowAudit(false)} className="text-text-muted hover:text-white">✕</button>
+                                    </div>
+                                    <div className="overflow-x-auto text-left">
+                                        <table className="w-full text-xs font-bold uppercase tracking-widest text-left">
+                                            <thead>
+                                                <tr className="border-b border-white/5">
+                                                    <th className="py-4 opacity-40">Timestamp</th>
+                                                    <th className="py-4 opacity-40">Descriptor</th>
+                                                    <th className="py-4 opacity-40">Entity</th>
+                                                    <th className="py-4 text-right opacity-40">Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {[
+                                                    { time: '2026-03-01 04:30', desc: 'Repair Ticket Release', ent: 'Cathy Clumsy', val: '₱2,500' },
+                                                    { time: '2026-03-01 04:15', desc: 'Warranty Validation', ent: 'Arthur Pendragon', val: '₱0' },
+                                                    { time: '2026-03-01 02:45', desc: 'Part Sourcing Order', ent: 'Kowloon Parts', val: '-₱12,400' },
+                                                    { time: '2026-02-28 22:15', desc: 'L3 Specialist Payout', ent: 'MasterTech Alpha', val: '-₱8,500' },
+                                                    { time: '2026-02-28 20:00', desc: 'Consolidated Daily Drop', ent: 'Mandaue Center', val: '₱45,400' },
+                                                ].map((row, i) => (
+                                                    <tr key={i} className="hover:bg-white/5 transition-colors">
+                                                        <td className="py-4 text-text-muted">{row.time}</td>
+                                                        <td className="py-4">{row.desc}</td>
+                                                        <td className="py-4 text-accent-blue">{row.ent}</td>
+                                                        <td className={`py-4 text-right font-mono ${row.val.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>{row.val}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p className="text-[10px] text-text-muted italic opacity-40 pt-4 text-center">System Hash: SHA256/tcems-prod-audit-node-A1</p>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
                     <button className="flex-1 lg:flex-none h-14 px-8 bg-ltt-orange hover:bg-ltt-orange/90 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-2xl shadow-ltt-orange/40">
                         <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Sync Data
                     </button>
