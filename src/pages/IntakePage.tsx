@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Search, Printer, UserPlus, Save, Camera, Plus, X, Laptop, Monitor, Gamepad2, Layers, ClipboardCheck, Lock } from 'lucide-react';
+import { Search, Printer, UserPlus, Save, Camera, Plus, X, Laptop, Monitor, Gamepad2, Layers, ClipboardCheck, Lock, AlertCircle, RotateCcw, ShieldCheck, HeartPulse } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import TermsModal from '../components/TermsModal';
+import ClaimSlip from '../components/ClaimSlip';
 
 interface Customer {
     id: string;
@@ -36,12 +37,20 @@ const IntakePage: React.FC = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [stickerCount, setStickerCount] = useState(1);
     const [showTerms, setShowTerms] = useState(false);
+    const [isFastTrack, setIsFastTrack] = useState(false);
+    const [csTroubleshooting, setCsTroubleshooting] = useState<string[]>([]);
 
     const deviceTypes = [
         { name: 'Laptop', icon: <Laptop size={18} /> },
         { name: 'Desktop', icon: <Monitor size={18} /> },
         { name: 'Console', icon: <Gamepad2 size={18} /> },
         { name: 'Others', icon: <Layers size={18} /> }
+    ];
+
+    const csBestPractices = [
+        'Hard Reset (Static Discharge)', 'Test with Shop Adapter',
+        'External Display Output', 'Battery Isolation',
+        'Flashlight Test (Dim LCD)', 'CMOS/RTC Recovery'
     ];
 
     const commonFaults = [
@@ -91,8 +100,8 @@ const IntakePage: React.FC = () => {
     const handleSubmit = async () => {
         setShowTerms(false);
         setIsSaving(true);
-        // Logic for saving to Supabase and triggering Printer
-        alert(`Ticket Created Successfully!\nSilent Printing ${stickerCount} Sticker(s) to P2-Y6015...`);
+        const status = isFastTrack ? 'MT-Expert Review' : 'Pending';
+        alert(`Ticket Created Successfully! [Status: ${status}]\nAuto-Assigned to MasterTech: ${isFastTrack ? 'YES' : 'STAGED'}\nSilent Printing Sticker & Claim Slip...`);
         setIsSaving(false);
     };
 
@@ -105,20 +114,61 @@ const IntakePage: React.FC = () => {
             />
 
             <header className="flex justify-between items-center mb-4">
-                <div>
-                    <h1 className="text-3xl font-bold flex items-center gap-3">
-                        <div className="bg-ltt-orange p-2 rounded-lg text-white"><Laptop size={28} /></div>
-                        Device Intake
-                    </h1>
-                    <p className="text-text-muted mt-1 font-medium italic">"Silently printing details in 40x46mm..."</p>
+                <div className="flex items-center gap-4">
+                    <div className="bg-ltt-orange p-3 rounded-2xl text-white shadow-lg shadow-ltt-orange/20"><Laptop size={32} /></div>
+                    <div>
+                        <h1 className="text-3xl font-black uppercase tracking-tight leading-none">Device Intake</h1>
+                        <p className="text-text-muted mt-2 font-black text-[10px] uppercase tracking-[0.2em] italic opacity-60">Professional Diagnostics & Fast-Track Service</p>
+                    </div>
                 </div>
-                <div className="text-right hidden md:block">
-                    <span className="text-xs font-black p-2 border border-ltt-orange rounded text-ltt-orange">STAFF: CS_MGR</span>
+
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setIsFastTrack(!isFastTrack)}
+                        className={`px-6 py-3 rounded-xl border flex items-center gap-2 transition-all font-black text-xs uppercase tracking-widest ${isFastTrack ? 'bg-red-500 border-red-500 text-white shadow-xl shadow-red-500/20 scale-105' : 'bg-white/5 border-glass-border text-text-muted hover:border-red-500/50 hover:text-red-400'}`}
+                    >
+                        {isFastTrack ? <HeartPulse size={16} className="animate-pulse" /> : <ShieldCheck size={16} />}
+                        {isFastTrack ? 'FAST-TRACK (DEAD UNIT)' : 'Diagnostic Mode'}
+                    </button>
                 </div>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
+                    {/* FAST TRACK WARNING */}
+                    <AnimatePresence>
+                        {isFastTrack && (
+                            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-6 bg-red-500/10 border-l-4 border-red-500 rounded-lg space-y-3 mb-6">
+                                <h3 className="text-red-500 font-black uppercase flex items-center gap-2">
+                                    <AlertCircle size={20} /> MasterTech Fast-Track Active
+                                </h3>
+                                <p className="text-sm text-text-muted font-medium">Unit is marked as **DEAD** or failed preliminary diagnostics. This ticket will be assigned directly to Expert L3/MasterTech.</p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* CS TROUBLESHOOTING CHECKLIST */}
+                    {isFastTrack && (
+                        <section className="glass-card space-y-4 border-l-4 border-ltt-orange overflow-hidden">
+                            <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange flex items-center gap-2">
+                                <RotateCcw size={16} /> CS Best-Practice Troubleshooting
+                            </h2>
+                            <p className="text-[10px] font-bold text-text-muted italic">Check off what was attempted before dropping off:</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {csBestPractices.map(bp => (
+                                    <button
+                                        key={bp}
+                                        onClick={() => toggleItem(setCsTroubleshooting, bp)}
+                                        className={`p-3 rounded-lg text-[10px] font-black uppercase border text-left flex items-center justify-between transition-all ${csTroubleshooting.includes(bp) ? 'bg-ltt-orange border-ltt-orange text-white' : 'border-glass-border text-text-muted hover:bg-white/5'}`}
+                                    >
+                                        {bp}
+                                        {csTroubleshooting.includes(bp) && <ShieldCheck size={12} />}
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
                     {/* CUSTOMER SECTION */}
                     <section className="glass-card space-y-4">
                         <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange flex items-center gap-2">
@@ -147,23 +197,23 @@ const IntakePage: React.FC = () => {
                     {/* PROBING & SECURITY */}
                     <section className="glass-card space-y-4 border-l-4 border-accent-blue">
                         <h2 className="text-sm font-black uppercase tracking-widest text-accent-blue flex items-center gap-2">
-                            <ClipboardCheck size={16} /> Initial Probing & Security
+                            <ClipboardCheck size={16} /> Probing & Security
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="text-[10px] uppercase font-black text-text-muted ml-2">Device Password / PIN</label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
-                                    <input className="input-field pl-9 font-mono" placeholder="Ask customer for password..." value={password} onChange={e => setPassword(e.target.value)} />
+                                    <input className="input-field pl-9 font-mono text-sm" placeholder="Ask customer for password..." value={password} onChange={e => setPassword(e.target.value)} />
                                 </div>
                             </div>
                             <div>
                                 <label className="text-[10px] uppercase font-black text-text-muted ml-2">When did the issue start?</label>
-                                <input className="input-field" placeholder="e.g. Yesterday after update..." value={probing.occurrence} onChange={e => setProbing({ ...probing, occurrence: e.target.value })} />
+                                <input className="input-field text-sm" placeholder="e.g. Yesterday after update..." value={probing.occurrence} onChange={e => setProbing({ ...probing, occurrence: e.target.value })} />
                             </div>
                         </div>
                         <div className="space-y-3">
-                            <label className="text-[10px] uppercase font-black text-text-muted ml-2">Has this been checked by other technicians?</label>
+                            <label className="text-[10px] uppercase font-black text-text-muted ml-2">Previous Technician Access?</label>
                             <div className="flex gap-2">
                                 {['No', 'Yes - Unauthorized', 'Yes - Official Center'].map(opt => (
                                     <button
@@ -177,8 +227,8 @@ const IntakePage: React.FC = () => {
                             </div>
                         </div>
                         <div>
-                            <label className="text-[10px] uppercase font-black text-text-muted ml-2">Any basic troubleshooting done?</label>
-                            <textarea className="input-field text-sm min-h-[80px]" placeholder="e.g. Tried different charger, hard reset, force restart..." value={probing.troubleshooting} onChange={e => setProbing({ ...probing, troubleshooting: e.target.value })} />
+                            <label className="text-[10px] uppercase font-black text-text-muted ml-2">Basic troubleshooting done?</label>
+                            <textarea className="input-field text-sm min-h-[80px]" placeholder="e.g. Tried hard reset, different charger..." value={probing.troubleshooting} onChange={e => setProbing({ ...probing, troubleshooting: e.target.value })} />
                         </div>
                     </section>
 
@@ -200,7 +250,7 @@ const IntakePage: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* DEVICE SPECS (BRAND, MODEL, SERIAL, COLOR) */}
+                    {/* DEVICE SPECS */}
                     <section className="glass-card space-y-4">
                         <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange">Specifications</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -294,57 +344,83 @@ const IntakePage: React.FC = () => {
                     </section>
                 </div>
 
-                {/* SIDEBAR PREVIEW */}
+                {/* SIDEBAR PREVIEW SECTION */}
                 <div className="space-y-6 lg:sticky lg:top-8 h-fit">
-                    <div className="glass-card bg-white/5 border-ltt-orange/30 p-4 space-y-4 shadow-2xl">
-                        <h2 className="text-xs font-black uppercase tracking-widest text-ltt-orange text-center flex items-center justify-center gap-2">
-                            <Printer size={14} /> P2 Sticker Preview
-                        </h2>
+                    <div className="glass-card bg-white/5 border-ltt-orange/30 p-5 space-y-6 shadow-2xl">
+                        <header className="flex flex-col items-center gap-1 border-b border-glass-border pb-3">
+                            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-ltt-orange">Silent Print Queue</h2>
+                            <p className="text-[8px] font-bold text-text-muted uppercase italic">Hardware: P2 & PT-210</p>
+                        </header>
 
-                        <div className="mx-auto w-[150px] h-[173px] bg-white text-black p-3 relative flex flex-col justify-between shadow-2xl rounded-sm">
-                            <div className="border-b-2 border-black pb-1">
-                                <p className="text-[12px] font-black leading-tight uppercase">TechShack</p>
-                                <p className="text-[7px] font-bold leading-none">Canduman, Mandaue City</p>
-                            </div>
+                        {/* P2 Sticker Preview */}
+                        <div className="space-y-3">
+                            <p className="text-[10px] font-black uppercase text-center text-text-muted opacity-60">40x46mm Sticker (P2)</p>
+                            <div className="mx-auto w-[150px] h-[173px] bg-white text-black p-3 relative flex flex-col justify-between shadow-2xl rounded-sm">
+                                <div className="border-b-2 border-black pb-1">
+                                    <p className="text-[12px] font-black leading-tight uppercase">TechShack</p>
+                                    <p className="text-[7px] font-bold leading-none">Canduman, Mandaue City</p>
+                                </div>
 
-                            <div className="flex-1 space-y-1 my-2 flex flex-col justify-center overflow-hidden">
-                                <div className="flex justify-between items-baseline border-b border-black/10">
-                                    <span className="text-[10px] font-black uppercase">TKT:</span>
-                                    <span className="text-[12px] font-black leading-none">#{(Math.random() * 1000).toFixed(0)}</span>
+                                <div className="flex-1 space-y-1 my-2 flex flex-col justify-center overflow-hidden">
+                                    <div className="flex justify-between items-baseline border-b border-black/10">
+                                        <span className="text-[10px] font-black uppercase">TKT:</span>
+                                        <span className="text-[12px] font-black leading-none">#{(Math.random() * 1000).toFixed(0)}</span>
+                                    </div>
+                                    <div className="leading-tight py-1">
+                                        <p className="text-[9px] font-bold text-gray-800 uppercase truncate">{customer?.full_name || 'Guest'}</p>
+                                        <p className="text-[8px] font-bold text-gray-500">{phone || '09XX-XXX-XXXX'}</p>
+                                    </div>
+                                    <div className="bg-black text-white p-1 rounded-sm text-center">
+                                        <p className="text-[9px] font-black uppercase truncate">{device.brand} {device.model || 'Device'}</p>
+                                    </div>
+                                    <div className="flex justify-between items-center text-[7px] font-bold">
+                                        <span>{device.color || 'Std'}</span>
+                                        <span className="truncate max-w-[50px]">{device.serial || 'No_SN'}</span>
+                                    </div>
                                 </div>
-                                <div className="leading-tight py-1">
-                                    <p className="text-[9px] font-bold text-gray-800">{customer?.full_name || 'Customer Name'}</p>
-                                    <p className="text-[8px] font-bold text-gray-500">{phone || '09XX'}</p>
-                                </div>
-                                <div className="bg-black text-white p-1 rounded-sm text-center">
-                                    <p className="text-[9px] font-black uppercase truncate">{device.brand} {device.model || 'Device'}</p>
-                                </div>
-                                <div className="flex justify-between items-center text-[7px] font-bold">
-                                    <span>{device.color || 'No Color'}</span>
-                                    <span className="truncate max-w-[50px]">{device.serial || 'No Serial'}</span>
-                                </div>
-                            </div>
 
-                            <div className="border-t border-black/50 pt-1">
-                                <p className="text-[6px] font-black uppercase bg-gray-100 text-center leading-loose">P2-Y6015 (40x46mm)</p>
+                                <div className="border-t border-black/50 pt-1">
+                                    <p className="text-[6px] font-black uppercase bg-gray-100 text-center leading-loose">P2-Y6015 (40x46mm)</p>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="space-y-3 pt-4">
+                        {/* PT-210 Claim Slip Preview */}
+                        {(isFastTrack || customer) && (
+                            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-3 pt-6 border-t border-dashed border-glass-border">
+                                <p className="text-[10px] font-black uppercase text-center text-accent-blue opacity-60">58mm Claim Slip (PT-210)</p>
+                                <div className="flex justify-center scale-90 origin-top">
+                                    <ClaimSlip
+                                        ticket={{
+                                            number: (Math.random() * 9000).toFixed(0),
+                                            date: new Date().toLocaleDateString(),
+                                            customer: customer?.full_name || 'Guest Customer',
+                                            phone: phone || 'No Number',
+                                            device: `${device.brand} ${device.model}`,
+                                            serial: device.serial || 'DEVICE_SN',
+                                            troubleshooting: csTroubleshooting,
+                                            isFastTrack: isFastTrack
+                                        }}
+                                    />
+                                </div>
+                            </motion.div>
+                        )}
+
+                        <div className="space-y-4 pt-6 border-t border-glass-border">
                             <div className="flex items-center justify-between px-2">
-                                <span className="text-xs font-black uppercase text-text-muted">Copies:</span>
-                                <div className="flex items-center gap-3">
-                                    <button onClick={() => setStickerCount(Math.max(1, stickerCount - 1))} className="p-1 hover:text-ltt-orange transition-colors"><X size={12} /></button>
-                                    <span className="text-lg font-black">{stickerCount}</span>
-                                    <button onClick={() => setStickerCount(stickerCount + 1)} className="p-1 hover:text-ltt-orange transition-colors"><Plus size={12} /></button>
+                                <span className="text-xs font-black uppercase text-text-muted">Print Copies:</span>
+                                <div className="flex items-center gap-4">
+                                    <button onClick={() => setStickerCount(Math.max(1, stickerCount - 1))} className="p-2 bg-white/5 rounded-lg hover:text-ltt-orange transition-colors"><Minus size={14} /></button>
+                                    <span className="text-xl font-black">{stickerCount}</span>
+                                    <button onClick={() => setStickerCount(stickerCount + 1)} className="p-2 bg-white/5 rounded-lg hover:text-ltt-orange transition-colors"><Plus size={14} /></button>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setShowTerms(true)}
                                 disabled={isSaving}
-                                className="btn-primary w-full py-4 flex items-center justify-center gap-3 text-lg font-black shadow-lg shadow-ltt-orange/40"
+                                className={`w-full py-5 flex items-center justify-center gap-3 text-lg font-black shadow-lg transition-all rounded-xl ${isFastTrack ? 'bg-red-500 text-white shadow-red-500/20 hover:scale-[1.02]' : 'btn-primary shadow-ltt-orange/40'}`}
                             >
-                                {isSaving ? 'Registering...' : <><Save size={24} /> Confirm Intake</>}
+                                {isSaving ? 'Registering...' : <><Save size={24} /> {isFastTrack ? 'Confirm Drop-off' : 'Confirm Intake'}</>}
                             </button>
                         </div>
                     </div>
