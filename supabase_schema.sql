@@ -54,8 +54,10 @@ CREATE TABLE IF NOT EXISTS public.devices (
     brand TEXT NOT NULL,
     model TEXT NOT NULL,
     serial_number TEXT,
-    device_type TEXT,
-    -- Phone, Tablet, Laptop, etc.
+    color TEXT,
+    device_type TEXT CHECK (
+        device_type IN ('Laptop', 'Desktop', 'Console', 'Others')
+    ),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 -- REPAIR TICKETS
@@ -68,6 +70,10 @@ CREATE TABLE IF NOT EXISTS public.repair_tickets (
     assigned_to UUID REFERENCES public.profiles(id),
     technician_notes TEXT,
     customer_fault_report TEXT,
+    accessories TEXT [],
+    -- Array of accessories (Charger, Bag, etc.)
+    photos TEXT [],
+    -- Array of image URLs from Supabase Storage
     status TEXT DEFAULT 'Pending' CHECK (
         status IN (
             'Pending',
