@@ -13,7 +13,8 @@ import {
     Package,
     Search,
     Loader2,
-    MoreHorizontal
+    MoreHorizontal,
+    AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -134,9 +135,43 @@ const InventoryBoard: React.FC = () => {
 
     const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase()));
     const filteredServices = services.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
+    const lowStockItems = products.filter(p => p.stocks <= p.minStocks);
 
     return (
         <div className="space-y-10 pb-20 p-2 text-left">
+            {/* LOW STOCK ALERT HUB */}
+            <AnimatePresence>
+                {lowStockItems.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="bg-red-500/10 border-2 border-dashed border-red-500/20 rounded-[2rem] p-6 mb-8 flex items-center justify-between"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center text-red-500 animate-pulse">
+                                <AlertTriangle size={24} />
+                            </div>
+                            <div className="text-left">
+                                <h3 className="text-sm font-black uppercase tracking-tight text-white">Stock Depletion Imminent</h3>
+                                <p className="text-[10px] text-red-500/60 font-bold uppercase tracking-widest italic">{lowStockItems.length} Asset Nodes below critical threshold</p>
+                            </div>
+                        </div>
+                        <div className="flex -space-x-2">
+                            {lowStockItems.slice(0, 5).map(item => (
+                                <div key={item.id} className="w-10 h-10 rounded-full border-2 border-bg-carbon bg-bg-slate flex items-center justify-center text-[8px] font-black text-white" title={item.name}>
+                                    {item.name.substring(0, 2)}
+                                </div>
+                            ))}
+                            {lowStockItems.length > 5 && (
+                                <div className="w-10 h-10 rounded-full border-2 border-bg-carbon bg-ltt-orange flex items-center justify-center text-[10px] font-black text-white">
+                                    +{lowStockItems.length - 5}
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             {/* HEADER */}
             <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <div className="space-y-1">

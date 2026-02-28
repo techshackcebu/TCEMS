@@ -171,6 +171,15 @@ const KioskTerminal: React.FC = () => {
                             <h1 className="text-3xl font-black uppercase tracking-tighter">Secure Kiosk</h1>
                         </div>
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted opacity-60">TechShack Personnel Entry Terminal</p>
+
+                        {/* NATIVE BIOMETRIC TRIGGER */}
+                        <button
+                            onClick={() => (window as any).Capacitor?.NativeBiometric?.authenticate()}
+                            className="mt-4 px-4 py-2 bg-ltt-orange/10 border border-ltt-orange/20 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase text-ltt-orange hover:bg-ltt-orange hover:text-white transition-all group"
+                        >
+                            <ShieldCheck size={14} className="group-hover:animate-pulse" />
+                            Biometric Quick-Bypass (L3 Tech)
+                        </button>
                     </div>
 
                     <AnimatePresence mode="wait">

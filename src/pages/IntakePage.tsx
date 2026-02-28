@@ -113,6 +113,26 @@ const IntakePage: React.FC = () => {
         setIsSaving(true);
 
         try {
+            // --- PHOTO UPLOAD SUB-ROUTINE ---
+            const uploadedUrls = [];
+            for (const localUri of photos) {
+                if (localUri.startsWith('http')) { // Already uploaded or webPath
+                    const response = await fetch(localUri);
+                    const blob = await response.blob();
+                    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+                    const { data, error } = await supabase.storage
+                        .from('repair-photos')
+                        .upload(fileName, blob);
+
+                    if (data) {
+                        const { data: { publicUrl } } = supabase.storage
+                            .from('repair-photos')
+                            .getPublicUrl(data.path);
+                        uploadedUrls.push(publicUrl);
+                    }
+                }
+            }
+
             let customerId = customer?.id;
 
             if (!navigator.onLine) {
@@ -220,7 +240,7 @@ const IntakePage: React.FC = () => {
                     device_password: password,
                     probing_history: probingData,
                     accessories: accessories,
-                    photos: photos, // In a real app we would upload these to Supabase Storage first
+                    photos: uploadedUrls.length > 0 ? uploadedUrls : photos,
                     status: ticketStatus,
                     priority: isFastTrack ? 'High' : 'Medium'
                 }])

@@ -15,7 +15,9 @@ import {
     History,
     Terminal,
     RefreshCw,
-    Calendar
+    Calendar,
+    LayoutGrid,
+    AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -50,19 +52,16 @@ const DashboardPage: React.FC = () => {
 
             const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-            // Fetch Daily Revenue
             const { data: dailyPayments } = await supabase
                 .from('payments')
                 .select('amount_paid')
                 .gte('created_at', today.toISOString());
 
-            // Fetch Monthly Revenue
             const { data: monthlyPayments } = await supabase
                 .from('payments')
                 .select('amount_paid')
                 .gte('created_at', firstDayOfMonth.toISOString());
 
-            // Fetch Active Tickets
             const { count: activeTicketsCount } = await supabase
                 .from('repair_tickets')
                 .select('*', { count: 'exact', head: true })
@@ -71,7 +70,6 @@ const DashboardPage: React.FC = () => {
             const dailyRev = dailyPayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
             const monthlyRev = monthlyPayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
 
-            // Fetch Audit Logs (Recent 10)
             const { data: recentAudit } = await supabase
                 .from('payments')
                 .select(`
@@ -140,55 +138,60 @@ const DashboardPage: React.FC = () => {
                         <History size={18} /> Audit Ledger
                     </button>
 
-                    {/* AUDIT MODAL */}
-                    <AnimatePresence>
-                        {showAudit && (
-                            <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-6">
-                                <motion.div
-                                    initial={{ scale: 0.9, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="glass-card w-full max-w-4xl p-10 space-y-6"
-                                >
-                                    <div className="flex justify-between items-center border-b border-white/5 pb-4 text-left">
-                                        <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2"><History className="text-ltt-orange" /> Enterprise Audit Ledger</h2>
-                                        <button onClick={() => setShowAudit(false)} className="text-text-muted hover:text-white">✕</button>
-                                    </div>
-                                    <div className="overflow-x-auto text-left">
-                                        <table className="w-full text-xs font-bold uppercase tracking-widest text-left">
-                                            <thead>
-                                                <tr className="border-b border-white/5">
-                                                    <th className="py-4 opacity-40">Timestamp</th>
-                                                    <th className="py-4 opacity-40">Descriptor</th>
-                                                    <th className="py-4 opacity-40">Entity</th>
-                                                    <th className="py-4 text-right opacity-40">Value</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-white/5">
-                                                {auditLogs.length > 0 ? auditLogs.map((row, i) => (
-                                                    <tr key={i} className="hover:bg-white/5 transition-colors">
-                                                        <td className="py-4 text-text-muted">{new Date(row.created_at).toLocaleString()}</td>
-                                                        <td className="py-4">{row.payment_type} Payment #{row.repair_tickets?.ticket_number}</td>
-                                                        <td className="py-4 text-accent-blue">{row.repair_tickets?.customers?.full_name || 'System'}</td>
-                                                        <td className="py-4 text-right font-mono text-green-400">₱{Number(row.amount_paid).toLocaleString()}</td>
-                                                    </tr>
-                                                )) : (
-                                                    <tr>
-                                                        <td colSpan={4} className="py-10 text-center text-text-muted opacity-20">No transaction nodes detected in current cycle.</td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <p className="text-[10px] text-text-muted italic opacity-40 pt-4 text-center">System Hash: SHA256/tcems-prod-audit-node-A1</p>
-                                </motion.div>
-                            </div>
-                        )}
-                    </AnimatePresence>
-                    <button className="flex-1 lg:flex-none h-14 px-8 bg-ltt-orange hover:bg-ltt-orange/90 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-2xl shadow-ltt-orange/40">
-                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Sync Data
-                    </button>
+                    <div className="flex items-center gap-4 bg-red-500/10 border border-red-500/20 px-6 h-14 rounded-2xl animate-pulse cursor-pointer hover:bg-red-500/20 transition-all">
+                        <AlertTriangle size={20} className="text-red-500" />
+                        <div className="text-left">
+                            <p className="text-[7px] font-black uppercase text-red-500">Logistics Link</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-white">Stock Critical</p>
+                        </div>
+                    </div>
                 </div>
             </header>
+
+            {/* AUDIT MODAL */}
+            <AnimatePresence>
+                {showAudit && (
+                    <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-6">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="glass-card w-full max-w-4xl p-10 space-y-6"
+                        >
+                            <div className="flex justify-between items-center text-left">
+                                <div className="text-left">
+                                    <h2 className="text-3xl font-black uppercase tracking-tighter flex items-center gap-3"><History size={32} className="text-ltt-orange" /> Historical Audit Ledger</h2>
+                                    <p className="text-[10px] font-black tracking-widest text-text-muted uppercase opacity-40">Financial Integrity node verified</p>
+                                </div>
+                                <button onClick={() => setShowAudit(false)} className="p-3 bg-white/5 rounded-full hover:bg-red-500/20 transition-colors"><Settings2 size={24} /></button>
+                            </div>
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-separate border-spacing-y-2">
+                                    <thead>
+                                        <tr className="text-[10px] font-black uppercase text-text-muted opacity-40">
+                                            <th className="px-6 py-4">Transaction Hub</th>
+                                            <th className="px-6 py-4">Client ID</th>
+                                            <th className="px-6 py-4">TKT REF</th>
+                                            <th className="px-6 py-4 text-right">Value Mapping</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {auditLogs.map((log, idx) => (
+                                            <tr key={log.id} className="bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-all group">
+                                                <td className="px-6 py-4 text-sm font-bold text-white uppercase">{new Date(log.created_at).toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-sm font-medium text-text-muted uppercase tracking-widest">{(log.repair_tickets as any)?.customers?.full_name || 'Anonymous User'}</td>
+                                                <td className="px-6 py-4 text-xs font-mono font-black text-ltt-orange">#{(log.repair_tickets as any)?.ticket_number}</td>
+                                                <td className="px-6 py-4 text-right font-black text-green-500 font-mono">₱{Number(log.amount_paid).toLocaleString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p className="text-[10px] text-text-muted italic opacity-40 pt-4 text-center">System Hash: SHA256/tcems-prod-audit-node-A1</p>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* PERFORMANCE GAUGES */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -245,13 +248,13 @@ const DashboardPage: React.FC = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right text-left">
                             <p className={`text-4xl font-black italic tracking-tighter ${performancePct >= 100 ? 'text-green-500' : 'text-ltt-orange'}`}>{performancePct.toFixed(1)}%</p>
                             <p className="text-[10px] font-black uppercase text-text-muted opacity-40">Quota Attainment</p>
                         </div>
                     </div>
 
-                    <div className="mt-12 space-y-4 z-10">
+                    <div className="mt-12 space-y-4 z-10 text-left">
                         <div className="h-6 bg-black/40 rounded-full border border-white/5 p-1 relative overflow-hidden">
                             <motion.div
                                 initial={{ width: 0 }}
@@ -276,7 +279,7 @@ const DashboardPage: React.FC = () => {
                 </div>
 
                 {/* STAFF STATUS / HUB */}
-                <div className="glass-card p-10 border-accent-blue/20 bg-accent-blue/5 flex flex-col justify-between group">
+                <div className="glass-card p-10 border-accent-blue/20 bg-accent-blue/5 flex flex-col justify-between group text-left">
                     <div className="flex justify-between items-center mb-8">
                         <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-3">
                             <Users size={18} className="text-accent-blue" /> Specialist Roster
@@ -293,18 +296,17 @@ const DashboardPage: React.FC = () => {
                         <div className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 hover:border-accent-blue/40 transition-all cursor-pointer">
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 bg-accent-blue/10 rounded-xl flex items-center justify-center text-accent-blue shadow-inner"><ShieldCheck size={20} /></div>
-                                <div className="text-left">
+                                <div className="text-left text-left">
                                     <p className="text-xs font-black uppercase">MasterTechnician</p>
                                     <p className="text-[9px] font-bold text-accent-blue opacity-80 uppercase italic">100% Profit Linked</p>
                                 </div>
                             </div>
-                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse" />
                         </div>
                     </div>
 
-                    <div className="pt-8 border-t border-glass-border/50 text-left">
-                        <p className="text-[9px] font-black uppercase text-text-muted opacity-40 leading-relaxed">Directive: MasterTechnician owns all linked services and retains 100% of the overhead/labor node profit.</p>
-                    </div>
+                    <button className="w-full h-14 bg-white/5 border border-glass-border hover:bg-white/10 text-white rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 transition-all mt-8">
+                        <Terminal size={18} /> Operational Logs
+                    </button>
                 </div>
             </div>
 
@@ -331,7 +333,7 @@ const DashboardPage: React.FC = () => {
             </div>
 
             {/* LOWER INTEL PANEL */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
                 <div className="glass-card p-8 border-glass-border space-y-6 text-left">
                     <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-3"><ArrowUpRight size={20} className="text-ltt-orange" /> Enterprise Directives</h3>
                     <div className="space-y-4">

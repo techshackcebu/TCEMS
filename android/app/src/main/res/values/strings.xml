@@ -1,7 +1,25 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">TCEMS</string>
-    <string name="title_activity_main">TCEMS</string>
+    <string name="app_name">TechShack TCEMS</string>
+    <string name="title_activity_main">TechShack TCEMS</string>
     <string name="package_name">com.techshack.tcems</string>
     <string name="custom_url_scheme">com.techshack.tcems</string>
+
+    <!-- Navigation Menu Items -->
+    <string name="menu_home">Home</string>
+    <string name="menu_camera">Camera</string>
+    <string name="menu_settings">Settings</string>
+
+    <!-- Camera Related -->
+    <string name="camera_permission_required">Camera permission is required</string>
+    <string name="camera_error">Failed to capture image</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="capture">Capture</string>
+
+    <!-- Preferences -->
+    <string name="preference_app_theme">Theme</string>
+    <string name="preference_theme">Theme</string>
+    <string name="preference_notifications">Enable Notifications</string>
+    <string name="preference_language">Language</string>
+    <string name="preference_about">About TCEMS</string>
 </resources>

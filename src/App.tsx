@@ -20,7 +20,13 @@ import DiagnosticFlow from './components/DiagnosticFlow';
 import { supabase } from './lib/supabase';
 import { localDB } from './lib/db';
 import type { Session } from '@supabase/supabase-js';
-import { LayoutGrid, Users, Settings, LogOut, Users2, Landmark, FileText, ChevronLeft, Package, CreditCard, Search, ShieldCheck, LayoutDashboard, QrCode, Smartphone, Monitor, User, PieChart, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import {
+  ShieldCheck, LayoutDashboard, QrCode, Smartphone, Monitor,
+  User, PieChart, Wifi, WifiOff, RefreshCw, AlertTriangle,
+  Users, Settings, LogOut, Users2, Landmark, FileText,
+  ChevronLeft, Package, CreditCard, Search, LayoutGrid
+} from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -198,7 +204,10 @@ const App: React.FC = () => {
                   }`}
               >
                 {item.icon}
-                {item.name}
+                <span className="flex-1 text-left">{item.name}</span>
+                {item.name === 'Inventory' && (
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_#ef4444]" />
+                )}
               </button>
             ))}
           </nav>
@@ -224,15 +233,20 @@ const App: React.FC = () => {
       </main>
 
       {/* MOBILE TAB BAR */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-bg-slate/80 backdrop-blur-xl border-t border-glass-border flex justify-around items-center p-3 md:hidden z-50">
-        {menuItems.slice(0, 4).map(item => (
+      <nav className="fixed bottom-0 left-0 right-0 bg-bg-slate border-t border-glass-border flex justify-around p-4 lg:hidden z-50">
+        {menuItems.slice(0, 5).map(item => (
           <button
             key={item.name}
             onClick={() => { setCurrentPage(item.name); setSelectedTicketId(null); }}
-            className={`flex flex-col items-center gap-1 ${currentPage === item.name ? 'text-ltt-orange' : 'text-text-muted'}`}
+            className={`flex flex-col items-center gap-1 ${currentPage === item.name ? 'text-ltt-orange' : 'text-text-muted'} relative`}
           >
             {item.icon}
             <span className="text-[10px] font-bold uppercase">{item.name.replace(' Tickets', '')}</span>
+
+            {/* INVENTORY ALERT BADGE */}
+            {item.name === 'Inventory' && (
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-bg-slate animate-pulse" />
+            )}
           </button>
         ))}
       </nav>
