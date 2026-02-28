@@ -111,13 +111,24 @@ const App: React.FC = () => {
 
   const menuItems = allMenuItems.filter(item => userRole ? item.roles.includes(userRole) : false);
 
-  // Development shortcut: auto‑login when no session in dev mode
-  if (!session && import.meta.env.DEV) {
-    // Create a mock session object
-    const mockSession = { user: { email: 'dev@local' } } as any;
-    setSession(mockSession);
-    setUserRole(1); // Admin role to show all menu items
-  }
+  // SALES DEMO / BUYER BYPASS (High Urgency Sales Pitch)
+  useEffect(() => {
+    const isSalesDemo = localStorage.getItem('sales_demo') === 'true';
+    if (!session && (import.meta.env.DEV || isSalesDemo)) {
+      const mockSession = { user: { email: 'demo@techshack.ph' } } as any;
+      setSession(mockSession);
+      setUserRole(1); // Admin role
+      if (isSalesDemo) console.warn("App running in SALES DEMO mode (Auth Bypass)");
+    }
+  }, [session]);
+
+  const handleLogout = async () => {
+    localStorage.removeItem('sales_demo');
+    await supabase.auth.signOut();
+    setSession(null);
+    setUserRole(null);
+  };
+
   if (!session) return <LoginPage />;
 
   const renderContent = () => {
@@ -207,7 +218,7 @@ const App: React.FC = () => {
         <div className="pt-6 border-t border-glass-border">
           <p className="text-[10px] uppercase font-black text-text-muted px-4 mb-2 truncate">{session.user.email?.split('@')[0]}</p>
           <button
-            onClick={() => supabase.auth.signOut()}
+            onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 text-text-muted hover:text-red-400 transition-colors font-medium"
           >
             <LogOut size={20} />
