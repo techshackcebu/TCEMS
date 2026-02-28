@@ -193,7 +193,7 @@ const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
                         <div className="w-12 h-12 border-4 border-ltt-orange border-t-transparent rounded-full animate-spin"></div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filteredTickets.map((ticket, idx) => (
                             <motion.div
                                 layout
@@ -201,9 +201,9 @@ const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.05 }}
                                 key={ticket.id}
-                                className={`glass-card hover:border-ltt-orange/50 transition-all group overflow-hidden ${ticket.status === 'MT-Expert Review' ? 'border-red-500/30 bg-red-500/5 shadow-2xl shadow-red-500/5' : ''} ${ticket.status === 'Testing (L2)' ? 'border-blue-500/30 bg-blue-500/5 shadow-2xl shadow-blue-500/5' : ''}`}
+                                className={`glass-card p-6 h-full flex flex-col hover:border-ltt-orange/50 transition-all group overflow-hidden ${ticket.status === 'MT-Expert Review' ? 'border-red-500/30 bg-red-500/5 shadow-2xl shadow-red-500/5' : ''} ${ticket.status === 'Testing (L2)' ? 'border-blue-500/30 bg-blue-500/5 shadow-2xl shadow-blue-500/5' : ''}`}
                             >
-                                <div className="flex justify-between items-start mb-4">
+                                <div className="flex justify-between items-start mb-6">
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border flex items-center gap-1.5 ${statusColors[ticket.status] || statusColors['Pending']}`}>
                                         {getStatusIcon(ticket.status)}
                                         {ticket.status}
@@ -213,33 +213,35 @@ const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
                                     </button>
                                 </div>
 
-                                <div className="space-y-3">
+                                <div className="space-y-4 flex-1">
                                     <div>
-                                        <h3 className="text-lg font-bold flex items-center justify-between tracking-tight">
+                                        <h3 className="text-xl font-bold flex items-center justify-between tracking-tight">
                                             {ticket.devices?.brand || 'Unknown'} {ticket.devices?.model || 'Device'}
                                             <span className="text-text-muted text-[10px] font-black font-mono">#{ticket.ticket_number}</span>
                                         </h3>
-                                        <p className="text-text-muted text-xs font-bold uppercase tracking-widest">{ticket.customers?.full_name || 'Unknown'} • {ticket.customers?.phone || 'N/A'}</p>
+                                        <p className="text-text-muted text-xs font-bold uppercase tracking-widest mt-1 opacity-60">
+                                            {ticket.customers?.full_name || 'Unknown'} • {ticket.customers?.phone || 'N/A'}
+                                        </p>
                                     </div>
 
-                                    <div className="p-3 bg-black/30 rounded-xl text-xs italic text-text-muted border-l-2 border-ltt-orange group-hover:bg-black/50 transition-all font-medium">
+                                    <div className="p-4 bg-black/30 rounded-xl text-xs italic text-text-muted border-l-2 border-ltt-orange group-hover:bg-black/50 transition-all font-medium leading-relaxed">
                                         "{ticket.probing_history?.faults?.join(', ') || 'Pending initial diagnostic check'}"
                                     </div>
+                                </div>
 
-                                    <div className="flex justify-between items-center pt-4 border-t border-glass-border">
-                                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-                                            {getPriorityIcon(ticket.priority)}
-                                            <span className={ticket.priority === 'Urgent' ? 'text-red-500 animate-pulse' : 'text-text-muted'}>
-                                                {ticket.priority} Priority
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={() => handleInspect(ticket)}
-                                            className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:translate-x-1 ${ticket.status === 'MT-Expert Review' ? 'text-red-500 font-black' : ticket.status === 'Testing (L2)' ? 'text-blue-400 font-black' : 'text-ltt-orange'}`}
-                                        >
-                                            {ticket.status === 'MT-Expert Review' ? 'MT-RESOLVE' : ticket.status === 'Testing (L2)' ? 'QA-TEST' : 'Inspect'} <ArrowUpRight size={14} />
-                                        </button>
+                                <div className="flex justify-between items-center pt-6 border-t border-glass-border mt-6">
+                                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                                        {getPriorityIcon(ticket.priority)}
+                                        <span className={ticket.priority === 'Urgent' ? 'text-red-500 animate-pulse' : 'text-text-muted opacity-60'}>
+                                            {ticket.priority} Priority
+                                        </span>
                                     </div>
+                                    <button
+                                        onClick={() => handleInspect(ticket)}
+                                        className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:translate-x-1 ${ticket.status === 'MT-Expert Review' ? 'text-red-500 font-black' : ticket.status === 'Testing (L2)' ? 'text-blue-400 font-black' : 'text-ltt-orange'}`}
+                                    >
+                                        {ticket.status === 'MT-Expert Review' ? 'MT-RESOLVE' : ticket.status === 'Testing (L2)' ? 'QA-TEST' : 'Inspect'} <ArrowUpRight size={16} />
+                                    </button>
                                 </div>
                             </motion.div>
                         ))}

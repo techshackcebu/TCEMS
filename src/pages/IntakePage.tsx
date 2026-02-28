@@ -299,7 +299,7 @@ const IntakePage: React.FC = () => {
 
                     {/* CS TROUBLESHOOTING CHECKLIST */}
                     {isFastTrack && (
-                        <section className="glass-card space-y-4 border-l-4 border-ltt-orange overflow-hidden text-left">
+                        <section className="glass-card p-6 space-y-4 border-l-4 border-ltt-orange overflow-hidden text-left">
                             <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange flex items-center gap-2 text-left">
                                 <RotateCcw size={16} /> CS Best-Practice Troubleshooting
                             </h2>
@@ -320,7 +320,7 @@ const IntakePage: React.FC = () => {
                     )}
 
                     {/* CUSTOMER SECTION */}
-                    <section className="glass-card space-y-4 text-left">
+                    <section className="glass-card p-6 space-y-4 text-left">
                         <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange flex items-center gap-2 text-left">
                             <Search size={16} /> Customer Lookup
                         </h2>
@@ -362,7 +362,7 @@ const IntakePage: React.FC = () => {
                     </section>
 
                     {/* PROBING & SECURITY */}
-                    <section className="glass-card space-y-4 border-l-4 border-accent-blue text-left">
+                    <section className="glass-card p-6 space-y-4 border-l-4 border-accent-blue text-left">
                         <h2 className="text-sm font-black uppercase tracking-widest text-accent-blue flex items-center gap-2 text-left">
                             <ClipboardCheck size={16} /> Probing & Security
                         </h2>
@@ -400,7 +400,7 @@ const IntakePage: React.FC = () => {
                     </section>
 
                     {/* DEVICE TYPE SELECTOR */}
-                    <section className="glass-card space-y-4 text-left">
+                    <section className="glass-card p-6 space-y-4 text-left">
                         <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange text-left">Device Category</h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-left">
                             {deviceTypes.map(t => (
@@ -418,7 +418,7 @@ const IntakePage: React.FC = () => {
                     </section>
 
                     {/* DEVICE SPECS */}
-                    <section className="glass-card space-y-4 text-left">
+                    <section className="glass-card p-6 space-y-4 text-left">
                         <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange text-left">Specifications</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
                             <div className="text-left">
@@ -441,7 +441,7 @@ const IntakePage: React.FC = () => {
                     </section>
 
                     {/* ISSUE CHECKLIST */}
-                    <section className="glass-card space-y-4 text-left">
+                    <section className="glass-card p-6 space-y-4 text-left">
                         <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange text-left">Issue / Fault Reporting</h2>
                         <div className="flex flex-wrap gap-2 text-left">
                             {commonFaults.map(f => (
@@ -462,7 +462,7 @@ const IntakePage: React.FC = () => {
                     </section>
 
                     {/* ACCESSORIES CHECKLIST */}
-                    <section className="glass-card space-y-4 text-left">
+                    <section className="glass-card p-6 space-y-4 text-left">
                         <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange text-left">Accessories Included</h2>
                         <div className="flex flex-wrap gap-2 text-left">
                             {commonAccessories.map(a => (
@@ -483,7 +483,7 @@ const IntakePage: React.FC = () => {
                     </section>
 
                     {/* PHOTO CAPTURE */}
-                    <section className="glass-card space-y-4 text-left">
+                    <section className="glass-card p-6 space-y-4 text-left">
                         <div className="flex justify-between items-center text-left">
                             <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange text-left">Condition Photos</h2>
                             <button onClick={takePhoto} className="flex items-center gap-2 text-xs font-black text-ltt-orange border border-ltt-orange/50 px-4 py-2 rounded-lg hover:bg-ltt-orange/10 transition-all uppercase">
@@ -513,7 +513,7 @@ const IntakePage: React.FC = () => {
 
                 {/* SIDEBAR PREVIEW SECTION */}
                 <div className="space-y-6 lg:sticky lg:top-8 h-fit text-left">
-                    <div className="glass-card bg-white/5 border-ltt-orange/30 p-5 space-y-6 shadow-2xl text-left">
+                    <div className="glass-card p-6 bg-white/5 border-ltt-orange/30 space-y-6 shadow-2xl text-left">
                         <header className="flex flex-col items-center gap-1 border-b border-glass-border pb-3 text-center">
                             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-ltt-orange">Silent Print Queue</h2>
                             <p className="text-[8px] font-bold text-text-muted uppercase italic">Hardware: P2 & PT-210</p>
