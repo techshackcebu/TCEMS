@@ -5,7 +5,7 @@ import {
     History,
     Download,
     ArrowUpRight,
-    DollarSign,
+    TrendingUp,
     Activity,
     ChevronRight,
     Target,
@@ -46,7 +46,7 @@ const EmployeePortal: React.FC = () => {
     ]);
 
     const stats = [
-        { label: 'Current Running Pay', val: '₱5,480.00', sub: 'Feb 11 - Feb 25 Period', icon: <DollarSign size={20} />, color: 'blue' },
+        { label: 'Current Running Pay', val: '₱5,480.00', sub: 'Feb 11 - Feb 25 Period', icon: <TrendingUp size={20} />, color: 'blue' },
         { label: 'Clock Efficiency', val: '92%', sub: 'Avg Attendance Speed', icon: <Activity size={20} />, color: 'green' },
         { label: 'SIL Credits', val: '4.0', sub: 'Available Leave Days', icon: <FileText size={20} />, color: 'orange' },
         { label: 'Outstanding Balance', val: '₱2,000.00', sub: 'Cash Advance Repayment', icon: <Zap size={20} />, color: 'red' },
@@ -156,7 +156,7 @@ const EmployeePortal: React.FC = () => {
 
                         <div className="space-y-4 pt-4 border-t border-glass-border">
                             <div className="relative group">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-ltt-orange opacity-40 group-focus-within:opacity-100 transition-opacity" size={20} />
+                                <TrendingUp className="absolute left-3 top-1/2 -translate-y-1/2 text-ltt-orange opacity-40 group-focus-within:opacity-100 transition-opacity" size={20} />
                                 <input className="input-field pl-10 h-14 text-xl font-black font-mono bg-black/40 border-glass-border focus:border-ltt-orange/60" placeholder="0.00" type="number" />
                             </div>
                             <div className="grid grid-cols-2 gap-2">

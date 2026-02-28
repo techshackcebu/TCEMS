@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
     Search,
     Calendar,
-    DollarSign,
     PieChart,
     Download,
     Calculator,
@@ -99,10 +98,10 @@ const PayrollPage: React.FC = () => {
         const tableRows = payouts.map(p => [
             `${p.employee_name} (${p.role})`,
             `${p.days_worked} Days / ${p.lates} Lates`,
-            `PHP ${(p.days_worked * p.daily_wage).toLocaleString()}`,
-            `PHP ${((p.days_worked - p.lates) * p.deminimis_daily).toFixed(2)}`,
-            `PHP ${p.commissions.toLocaleString()}`,
-            `PHP ${p.net_pay.toLocaleString()}`
+            `₱${(p.days_worked * p.daily_wage).toLocaleString()}`,
+            `₱${((p.days_worked - p.lates) * p.deminimis_daily).toFixed(2)}`,
+            `₱${p.commissions.toLocaleString()}`,
+            `₱${p.net_pay.toLocaleString()}`
         ]);
 
         autoTable(doc, {
@@ -118,7 +117,7 @@ const PayrollPage: React.FC = () => {
     };
 
     const stats = [
-        { label: 'Total Payroll', val: '₱' + payouts.reduce((s, p) => s + p.net_pay, 0).toLocaleString(), icon: <DollarSign size={18} />, color: 'blue' },
+        { label: 'Total Payroll', val: '₱' + payouts.reduce((s, p) => s + p.net_pay, 0).toLocaleString(), icon: <TrendingUp size={18} />, color: 'blue' },
         { label: 'Penalty Savings', val: '₱' + (payouts.reduce((s, p) => s + p.lates, 0) * DAILY_DEMINIMIS).toFixed(2), icon: <TrendingUp size={18} />, color: 'green' },
         { label: 'Net Commissions', val: '₱' + payouts.reduce((s, p) => s + p.commissions, 0).toLocaleString(), icon: <PieChart size={18} />, color: 'orange' },
         { label: 'Revenue Target', val: '₱' + dailyTarget.toLocaleString(), icon: <Target size={18} />, color: 'red' },

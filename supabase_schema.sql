@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     full_name TEXT NOT NULL,
     phone TEXT,
     role_id INTEGER REFERENCES public.roles(id),
+    kiosk_pin TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     joined_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()

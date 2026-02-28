@@ -10,44 +10,78 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/5 backdrop-blur-md border border-glass-border rounded-3xl shadow-xl;
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-[2rem] shadow-2xl transition-all duration-500;
+  }
+
+  .glass-card:hover {
+    @apply border-ltt-orange/20 bg-white/[0.05] shadow-ltt-orange/5;
   }
 
   .btn-primary {
-    @apply bg-ltt-orange text-white transition-all duration-300 font-bold disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-ltt-orange text-white transition-all duration-500 font-black uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-ltt-orange/20;
   }
 
   .btn-primary:hover:not(:disabled) {
-    background-color: rgba(241, 90, 36, 0.9);
-    box-shadow: 0 0 20px rgba(241, 90, 36, 0.5);
+    @apply scale-[1.02] shadow-ltt-orange/40;
+    background-color: #F15A24;
   }
 
   .input-field {
-    @apply w-full bg-black/30 border border-glass-border rounded-xl px-4 py-3 text-text-main focus:outline-none focus:border-ltt-orange transition-all placeholder:text-text-muted/50;
+    @apply w-full bg-black/40 border-2 border-white/5 rounded-2xl px-5 py-4 text-text-main font-bold focus:outline-none focus:border-ltt-orange transition-all placeholder:text-text-muted/30;
   }
 
   .input-field:focus {
-    --tw-ring-color: #F15A24;
-    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+    box-shadow: 0 0 20px rgba(241, 90, 36, 0.15);
   }
+}
+
+@keyframes slide {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 100px 100px;
+  }
+}
+
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
 }
 
 /* Custom scrollbar globally */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: rgba(241, 90, 36, 0.1);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(241, 90, 36, 0.3);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }

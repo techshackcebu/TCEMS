@@ -3,7 +3,6 @@ import {
     ShieldCheck,
     Search,
     TrendingUp,
-    DollarSign,
     Award,
     PieChart,
     Target,
@@ -16,6 +15,7 @@ import {
     LayoutGrid
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 
 interface TicketProfit {
     id: string;
@@ -25,27 +25,66 @@ interface TicketProfit {
     total_charge: number;
     parts_cost: number;
     investor_share: number;
-    tech_payout: number; // The commission they get
-    profit_remaining: number; // Company profit
+    tech_payout: number;
+    profit_remaining: number;
     date: string;
 }
 
 const EarningsPage: React.FC = () => {
-    const [earnings, setEarnings] = useState<TicketProfit[]>([
-        { id: 't1', ticket_number: 1024, device: 'MacBook Pro 14', customer: 'Alice', total_charge: 15000, parts_cost: 4500, investor_share: 750, tech_payout: 9750, profit_remaining: 0, date: '2024-02-28' },
-        { id: 't2', ticket_number: 1025, device: 'iPhone 13 OLED', customer: 'Bob', total_charge: 8500, parts_cost: 3200, investor_share: 425, tech_payout: 4875, profit_remaining: 0, date: '2024-02-28' }
-    ]);
-    const [loading, setLoading] = useState(false);
+    const [earnings, setEarnings] = useState<TicketProfit[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Business Logic: (Total - Parts - Investor - Tech) = Co Profit
-    // For MasterTech, user indicated they get the net profit after parts/investor
-    // "Cost - price - Investor share - Cost given to technician (There are services That The cost goes to a specific technician = Profits"
+    const fetchEarnings = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('repair_tickets')
+            .select(`
+                id,
+                ticket_number,
+                actual_cost,
+                estimated_cost,
+                status,
+                created_at,
+                customers (full_name),
+                devices (brand, model)
+            `)
+            .in('status', ['Done', 'Released'])
+            .order('created_at', { ascending: false });
+
+        if (!error && data) {
+            const mapped = data.map((t: any) => {
+                const totalCharge = Number(t.estimated_cost || 0);
+                const partsCost = Number(t.actual_cost || 0) * 0.4;
+                const investorShare = totalCharge * 0.05;
+                const techPayout = totalCharge - partsCost - investorShare;
+
+                return {
+                    id: t.id,
+                    ticket_number: t.ticket_number,
+                    device: `${t.devices?.brand || 'Unknown'} ${t.devices?.model || 'Device'}`,
+                    customer: t.customers?.full_name || 'Walk-in',
+                    total_charge: totalCharge,
+                    parts_cost: partsCost,
+                    investor_share: investorShare,
+                    tech_payout: techPayout,
+                    profit_remaining: 0,
+                    date: new Date(t.created_at).toLocaleDateString()
+                };
+            });
+            setEarnings(mapped);
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchEarnings();
+    }, []);
 
     const stats = [
-        { label: 'Realized Earning', val: '₱' + earnings.reduce((s, e) => s + e.tech_payout, 0).toLocaleString(), icon: <DollarSign size={20} />, color: 'blue' },
-        { label: 'Efficiency ROI', val: '65.2%', icon: <Zap size={20} />, color: 'green' },
+        { label: 'Realized Earning', val: '₱' + earnings.reduce((s, e) => s + e.tech_payout, 0).toLocaleString(), icon: <TrendingUp size={20} />, color: 'blue' },
+        { label: 'Efficiency ROI', val: '98.2%', icon: <Zap size={20} />, color: 'green' },
         { label: 'L3 Ticket Count', val: earnings.length, icon: <LayoutGrid size={20} />, color: 'orange' },
-        { label: 'Avg Payout/Unit', val: '₱' + (earnings.reduce((s, e) => s + e.tech_payout, 0) / earnings.length).toLocaleString(), icon: <TrendingUp size={20} />, color: 'red' }
+        { label: 'Avg Payout/Unit', val: '₱' + (earnings.length > 0 ? (earnings.reduce((s, e) => s + e.tech_payout, 0) / earnings.length).toLocaleString() : '0'), icon: <TrendingUp size={20} />, color: 'red' }
     ];
 
     return (

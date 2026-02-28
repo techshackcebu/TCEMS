@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
     Activity,
     CreditCard,
-    DollarSign,
     TrendingUp,
-    Users,
-    PackageSearch,
     ChevronDown,
     BarChart3,
     PieChart,
     Award,
+    PackageSearch,
     ShieldAlert,
     Loader2
 } from 'lucide-react';
@@ -159,7 +157,7 @@ const AnalyticsPage: React.FC = () => {
     }
 
     const overviewStats = [
-        { label: 'Active Revenue', val: `₱${data?.revenue.toLocaleString()}`, icon: <DollarSign size={20} />, trend: '+12.5%' },
+        { label: 'Active Revenue', val: `₱${data?.revenue.toLocaleString()}`, icon: <TrendingUp size={20} />, trend: '+12.5%' },
         { label: 'Ticket Volume', val: data?.sales.toString() || '0', icon: <Activity size={20} />, trend: '+5.2%' },
         { label: 'Avg. Ticket Size', val: `₱${Math.round(data?.avgTicket || 0).toLocaleString()}`, icon: <CreditCard size={20} />, trend: '-1.4%' },
         { label: 'Net Profit Margin', val: `${Math.round(data?.profit || 0)}%`, icon: <TrendingUp size={20} />, trend: '+8.1%' }

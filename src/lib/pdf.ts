@@ -36,11 +36,11 @@ export const generateReceiptPDF = (ticket: any, totals: any) => {
 
     // Items Table
     const tableData: any[] = [
-        ['Service (Labor)', `P${totals.labor.toLocaleString()}`]
+        ['Service (Labor)', `₱${totals.labor.toLocaleString()}`]
     ];
 
     (ticket.probing_history?.expert_data?.parts || []).forEach((p: any) => {
-        tableData.push([p.name || 'Component', `P${(p.price || 0).toLocaleString()}`]);
+        tableData.push([p.name || 'Component', `₱${(p.price || 0).toLocaleString()}`]);
     });
 
     autoTable(doc, {
@@ -59,7 +59,7 @@ export const generateReceiptPDF = (ticket: any, totals: any) => {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('GRAND TOTAL:', 5, finalY);
-    doc.text(`P${totals.grandTotal.toLocaleString()}`, 75, finalY, { align: 'right' });
+    doc.text(`₱${totals.grandTotal.toLocaleString()}`, 75, finalY, { align: 'right' });
 
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);

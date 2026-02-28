@@ -3,13 +3,12 @@ import {
     CreditCard,
     Search,
     Receipt,
-    DollarSign,
+    TrendingUp,
     Wallet,
     X,
     ArrowRight,
     Printer,
     Calculator,
-    Download,
     FileText
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -199,7 +198,7 @@ const POSBoard: React.FC = () => {
                         <div className="space-y-4 z-10">
                             <div className="bg-black/50 p-5 rounded-2xl border border-glass-border space-y-3">
                                 <div className="flex justify-between items-center text-xs font-bold">
-                                    <span className="text-text-muted flex items-center gap-2 uppercase tracking-widest"><DollarSign size={14} /> Labor Service</span>
+                                    <span className="text-text-muted flex items-center gap-2 uppercase tracking-widest"><TrendingUp size={14} /> Labor Service</span>
                                     <span>₱{calculateTotals(selectedTicket).labor.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between items-start text-xs font-bold border-t border-glass-border/50 pt-3">
@@ -247,7 +246,7 @@ const POSBoard: React.FC = () => {
                             <div className="space-y-3">
                                 <label className="text-[10px] font-black uppercase text-text-muted tracking-widest px-1">Payment Amount (₱)</label>
                                 <div className="relative group">
-                                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-ltt-orange opacity-40 group-focus-within:opacity-100 transition-opacity" size={24} />
+                                    <TrendingUp className="absolute left-4 top-1/2 -translate-y-1/2 text-ltt-orange opacity-40 group-focus-within:opacity-100 transition-opacity" size={24} />
                                     <input
                                         type="number"
                                         className="input-field pl-12 h-16 text-3xl font-black font-mono tracking-tighter bg-black/40 border-ltt-orange/20 focus:border-ltt-orange/60"
@@ -318,7 +317,7 @@ const POSBoard: React.FC = () => {
                         </div>
                         <div className="flex gap-2 opacity-5">
                             <CreditCard size={18} />
-                            <DollarSign size={18} />
+                            <TrendingUp size={18} />
                             <Wallet size={18} />
                         </div>
                     </div>

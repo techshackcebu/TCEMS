@@ -1,16 +1,9 @@
 import React, { useState } from 'react';
 import {
     Landmark,
-    Search,
     TrendingUp,
-    ShieldCheck,
-    Users,
-    ArrowUpRight,
     PieChart,
-    Clock,
-    DollarSign,
     ChevronRight,
-    Target,
     BarChart3,
     Award,
     X,
@@ -18,7 +11,11 @@ import {
     History,
     Calendar,
     ArrowDownRight,
-    ArrowRight
+    ArrowRight,
+    Search,
+    ShieldCheck,
+    Users,
+    ArrowUpRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -81,7 +78,7 @@ const InvestorPage: React.FC = () => {
         { label: 'Total AUM', val: '₱' + investors.reduce((s, i) => s + i.investment, 0).toLocaleString(), icon: <Landmark size={20} />, color: 'blue' },
         { label: 'Network Yield', val: '12.4%', icon: <TrendingUp size={20} />, color: 'green' },
         { label: 'Active Shares', val: investors.length, icon: <PieChart size={20} />, color: 'orange' },
-        { label: 'Running Payouts', val: '₱' + investors.reduce((s, i) => s + i.running_payout, 0).toLocaleString(undefined, { minimumFractionDigits: 2 }), icon: <DollarSign size={20} />, color: 'red' }
+        { label: 'Running Payouts', val: '₱' + investors.reduce((s, i) => s + i.running_payout, 0).toLocaleString(undefined, { minimumFractionDigits: 2 }), icon: <Landmark size={20} />, color: 'red' }
     ];
 
     const shareTiers = [
@@ -107,7 +104,7 @@ const InvestorPage: React.FC = () => {
 
                 <div className="flex gap-4 w-full lg:w-auto">
                     <button className="flex-1 lg:flex-none h-14 px-8 bg-white/5 hover:bg-white/10 border border-glass-border rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 transition-all">
-                        <DollarSign size={18} /> Capital Injection
+                        <Landmark size={18} /> Capital Injection
                     </button>
                     <button className="flex-1 lg:flex-none h-14 px-8 bg-accent-blue hover:bg-accent-blue/90 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-2xl shadow-accent-blue/40">
                         <TrendingUp size={18} /> Global ROI Report
@@ -273,7 +270,7 @@ const InvestorPage: React.FC = () => {
                                                 <p className="text-[10px] text-text-muted font-bold tracking-widest opacity-60 text-left">Cycle Accumulation: Feb 1st - Feb 28th, 2026</p>
                                             </div>
                                             <button className="h-16 px-10 bg-accent-blue hover:bg-accent-blue/90 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-2xl shadow-accent-blue/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-3">
-                                                <DollarSign size={20} /> Disburse Funds
+                                                <Landmark size={20} /> Disburse Funds
                                             </button>
                                         </div>
                                         <div className="absolute -right-20 -top-20 opacity-5 text-accent-blue pointer-events-none transform rotate-12 scale-[3]"><PieChart size={100} /></div>

@@ -6,7 +6,7 @@ import {
     Truck,
     Users,
     Wrench,
-    DollarSign,
+    TrendingUp,
     Layers,
     X,
     Upload,
@@ -279,7 +279,7 @@ const InventoryBoard: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-2 text-left p-6 bg-ltt-orange/5 rounded-2xl border border-ltt-orange/20">
-                                    <label className="text-[10px] font-black uppercase text-ltt-orange tracking-widest mb-2 flex items-center gap-2 text-left"><DollarSign size={14} /> Technician Payout Configuration</label>
+                                    <label className="text-[10px] font-black uppercase text-ltt-orange tracking-widest mb-2 flex items-center gap-2 text-left"><TrendingUp size={14} /> Technician Payout Configuration</label>
                                     <input type="number" className="input-field h-14 bg-black/40 text-xl font-black font-mono text-ltt-orange border-ltt-orange/30 focus:border-ltt-orange" placeholder="0.00" />
                                     <p className="text-[8px] font-black uppercase text-text-muted opacity-40 tracking-[0.2em] mt-3 italic text-left">This amount will be automatically credited to the primary technician upon job completion.</p>
                                 </div>

@@ -14,11 +14,13 @@ import PayrollPage from './pages/PayrollPage';
 import InvestorPage from './pages/InvestorPage';
 import EarningsPage from './pages/EarningsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import CustomersPage from './pages/CustomersPage';
+import SettingsPage from './pages/SettingsPage';
 import DiagnosticFlow from './components/DiagnosticFlow';
 import { supabase } from './lib/supabase';
-import { localDB, type OfflineTicketTask } from './lib/db';
+import { localDB } from './lib/db';
 import type { Session } from '@supabase/supabase-js';
-import { LayoutGrid, ClipboardCheck, Users, Box, Settings, LogOut, Users2, Landmark, History, FileText, ChevronLeft, Package, CreditCard, Search, ShieldCheck, LayoutDashboard, QrCode, Smartphone, Monitor, User, PieChart, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { LayoutGrid, Users, Settings, LogOut, Users2, Landmark, FileText, ChevronLeft, Package, CreditCard, Search, ShieldCheck, LayoutDashboard, QrCode, Smartphone, Monitor, User, PieChart, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -109,6 +111,13 @@ const App: React.FC = () => {
 
   const menuItems = allMenuItems.filter(item => userRole ? item.roles.includes(userRole) : false);
 
+  // Development shortcut: auto‑login when no session in dev mode
+  if (!session && import.meta.env.DEV) {
+    // Create a mock session object
+    const mockSession = { user: { email: 'dev@local' } } as any;
+    setSession(mockSession);
+    setUserRole(1); // Admin role to show all menu items
+  }
   if (!session) return <LoginPage />;
 
   const renderContent = () => {
@@ -143,6 +152,8 @@ const App: React.FC = () => {
       case 'Investors': return <InvestorPage />;
       case 'Earnings': return <EarningsPage />;
       case 'Analytics': return <AnalyticsPage />;
+      case 'Customers': return <CustomersPage />;
+      case 'Settings': return <SettingsPage />;
       default: return (
         <div className="flex flex-col items-center justify-center p-20 text-center space-y-4">
           <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-ltt-orange animate-pulse">
@@ -156,9 +167,9 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-bg-carbon text-text-main">
+    <div className="min-h-screen bg-bg-carbon text-text-main flex flex-col md:flex-row">
       {/* SIDEBAR */}
-      <aside className="w-64 border-r border-glass-border bg-bg-slate fixed h-full p-4 flex flex-col justify-between hidden md:flex overflow-y-auto scrollbar-thin">
+      <aside className="w-64 border-r border-glass-border bg-bg-slate h-full p-4 flex flex-col justify-between hidden md:flex overflow-y-auto scrollbar-thin">
         <div className="space-y-8">
           <div className="flex items-center gap-3 px-2 pt-4">
             <div className="w-10 h-10 bg-ltt-orange rounded-full flex items-center justify-center font-black text-xl shadow-[0_0_15px_rgba(241,90,36,0.3)]">TS</div>
@@ -206,7 +217,7 @@ const App: React.FC = () => {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 md:ml-64 bg-gradient-to-br from-bg-carbon to-bg-slate p-0 md:p-8">
+      <main className="flex-1 bg-gradient-to-br from-bg-carbon to-bg-slate p-0 md:p-8">
         <div className="glass-card shadow-2xl p-4 md:p-10 border-0 md:border">
           {renderContent()}
         </div>

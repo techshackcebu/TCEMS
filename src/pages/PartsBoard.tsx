@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, ExternalLink, DollarSign, CheckCircle2, XCircle, Clock, Truck, ShieldAlert, MoreHorizontal } from 'lucide-react';
+import { Package, ExternalLink, TrendingUp, CheckCircle2, XCircle, Clock, Truck, ShieldAlert, MoreHorizontal } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
 
@@ -128,7 +128,7 @@ const PartsBoard: React.FC = () => {
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black uppercase opacity-40">Est. Cost</label>
                                         <div className="relative">
-                                            <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 opacity-40" size={12} />
+                                            <TrendingUp className="absolute left-2 top-1/2 -translate-y-1/2 opacity-40" size={12} />
                                             <input
                                                 type="number"
                                                 className="input-field text-xs h-8 pl-6 py-0 bg-black/40 font-mono"

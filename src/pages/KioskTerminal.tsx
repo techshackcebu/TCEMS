@@ -85,18 +85,36 @@ const KioskTerminal: React.FC = () => {
 
     const handleVerification = async () => {
         setVerifying(true);
-        if (pin === '1234') {
-            const { data, error } = await supabase
+
+        // 1. Try to find profile with this PIN
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('id, full_name, roles(name)')
+            .eq('kiosk_pin', pin)
+            .maybeSingle();
+
+        if (!error && data) {
+            setActiveEmployee({
+                id: data.id,
+                name: data.full_name,
+                role: (data.roles as any)?.name || 'Staff',
+                status: 'OUT',
+                lastAction: new Date().toISOString()
+            });
+            startCamera();
+        } else if (pin === '1234') {
+            // 2. Fallback for Dev/Admin
+            const { data: fallbackData, error: fallbackError } = await supabase
                 .from('profiles')
                 .select('id, full_name, roles(name)')
                 .limit(1)
                 .single();
 
-            if (!error && data) {
+            if (!fallbackError && fallbackData) {
                 setActiveEmployee({
-                    id: data.id,
-                    name: data.full_name,
-                    role: (data.roles as any)?.name || 'Staff',
+                    id: fallbackData.id,
+                    name: fallbackData.full_name,
+                    role: (fallbackData.roles as any)?.name || 'Staff',
                     status: 'OUT',
                     lastAction: new Date().toISOString()
                 });

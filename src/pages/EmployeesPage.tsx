@@ -5,7 +5,7 @@ import {
     Search,
     Calendar,
     Clock,
-    DollarSign,
+    TrendingUp,
     ShieldCheck,
     UserCog,
     Briefcase,
@@ -120,9 +120,9 @@ const EmployeesPage: React.FC = () => {
                 id: authData.user.id,
                 full_name: signupForm.fullName,
                 phone: signupForm.phone,
-                role_id: roleMap[signupForm.role] || 7
+                role_id: roleMap[signupForm.role] || 7,
+                kiosk_pin: signupForm.pin // Save the PIN
             });
-            // Note: PIN Code requires a schema update, bypassing to standard profile for now.
         }
 
         setIsAdding(false);
@@ -146,7 +146,7 @@ const EmployeesPage: React.FC = () => {
 
     const stats = [
         { label: 'Active Roster', val: employees.length, icon: <Users2 size={18} />, color: 'blue' },
-        { label: 'Daily Budget', val: '₱' + employees.reduce((s, e) => s + e.dailyWage, 0).toLocaleString(), icon: <DollarSign size={18} />, color: 'green' },
+        { label: 'Daily Budget', val: '₱' + employees.reduce((s, e) => s + e.dailyWage, 0).toLocaleString(), icon: <TrendingUp size={18} />, color: 'green' },
         { label: 'OJT / Trainees', val: employees.filter(e => e.role === 'OJT/Trainee').length, icon: <Briefcase size={18} />, color: 'orange' },
         { label: 'L3 Specialists', val: employees.filter(e => e.role === 'MasterTechnician').length, icon: <ShieldCheck size={18} />, color: 'red' },
     ];
@@ -417,6 +417,11 @@ const EmployeesPage: React.FC = () => {
                                         <label className="text-[10px] font-black uppercase text-text-muted tracking-widest ml-2">Contact (+63)</label>
                                         <input className="input-field h-12 bg-black/40 text-sm font-bold" value={signupForm.phone} onChange={e => setSignupForm({ ...signupForm, phone: e.target.value })} />
                                     </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-ltt-orange tracking-widest ml-2 flex items-center gap-2"><Lock size={12} /> Secure Kiosk Entry Pin (4 Digits)</label>
+                                    <input required maxLength={4} className="input-field h-14 bg-black/40 text-2xl font-black font-mono tracking-[0.5em] text-center" value={signupForm.pin} onChange={e => setSignupForm({ ...signupForm, pin: e.target.value })} placeholder="0000" />
                                 </div>
 
                                 {signupError && (

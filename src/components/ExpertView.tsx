@@ -4,7 +4,7 @@ import {
     CheckCircle2,
     XCircle,
     Truck,
-    DollarSign,
+    TrendingUp,
     MessageSquare,
     Send,
     ArrowRight,
@@ -122,7 +122,7 @@ const ExpertView: React.FC<ExpertViewProps> = ({ ticket, onUpdateStatus, onClose
                                     onClick={() => setActiveTab('parts')}
                                     className={`flex items-center gap-3 p-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'parts' ? 'bg-ltt-orange text-white shadow-lg' : 'hover:bg-white/5 text-text-muted'}`}
                                 >
-                                    <DollarSign size={16} /> Parts & Pricing
+                                    <TrendingUp size={16} /> Parts & Pricing
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('action')}
@@ -212,16 +212,16 @@ const ExpertView: React.FC<ExpertViewProps> = ({ ticket, onUpdateStatus, onClose
                                         <div className="flex gap-8">
                                             <div>
                                                 <p className="text-[10px] font-black uppercase text-text-muted tracking-widest mb-1">Internal Cost</p>
-                                                <p className="text-xl font-mono">P{currentCost.toLocaleString()}</p>
+                                                <p className="text-xl font-mono">₱{currentCost.toLocaleString()}</p>
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-black uppercase text-ltt-orange tracking-widest mb-1">Customer Price</p>
-                                                <p className="text-2xl font-black font-mono">P{currentTotal.toLocaleString()}</p>
+                                                <p className="text-2xl font-black font-mono">₱{currentTotal.toLocaleString()}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] font-black uppercase text-green-500 tracking-widest mb-1">Est. Direct Profit</p>
-                                            <p className="text-xl font-black font-mono text-green-500">+P{profit.toLocaleString()}</p>
+                                            <p className="text-xl font-black font-mono text-green-500">+₱{profit.toLocaleString()}</p>
                                         </div>
                                     </div>
                                 </motion.div>
