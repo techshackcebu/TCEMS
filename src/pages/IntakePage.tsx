@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Search, Smartphone, ClipboardCheck, Printer, UserPlus, Save, Camera, Plus, X, Package, Laptop, Monitor, Gamepad2, Layers } from 'lucide-react';
+import { Search, Printer, UserPlus, Save, Camera, Plus, X, Laptop, Monitor, Gamepad2, Layers } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import TermsModal from '../components/TermsModal';
 
 interface Customer {
     id: string;
@@ -28,6 +29,7 @@ const IntakePage: React.FC = () => {
     const [photos, setPhotos] = useState<string[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [stickerCount, setStickerCount] = useState(1);
+    const [showTerms, setShowTerms] = useState(false);
 
     const deviceTypes = [
         { name: 'Laptop', icon: <Laptop size={18} /> },
@@ -56,7 +58,7 @@ const IntakePage: React.FC = () => {
         else setCustomer(null);
     };
 
-    const toggleItem = (list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>, item: string) => {
+    const toggleItem = (setList: React.Dispatch<React.SetStateAction<string[]>>, item: string) => {
         setList(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
     };
 
@@ -81,14 +83,21 @@ const IntakePage: React.FC = () => {
     };
 
     const handleSubmit = async () => {
+        setShowTerms(false);
         setIsSaving(true);
         // Logic for saving to Supabase and triggering Printer
-        alert(`Saving Ticket for ${device.brand}...\nSilently Printing ${stickerCount} Sticker(s) to P2-Y6015...`);
+        alert(`Ticket Created Successfully!\nSilent Printing ${stickerCount} Sticker(s) to P2-Y6015...`);
         setIsSaving(false);
     };
 
     return (
         <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6 pb-24">
+            <TermsModal
+                isOpen={showTerms}
+                onClose={() => setShowTerms(false)}
+                onAgree={handleSubmit}
+            />
+
             <header className="flex justify-between items-center mb-4">
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-3">
@@ -177,7 +186,7 @@ const IntakePage: React.FC = () => {
                             {commonFaults.map(f => (
                                 <button
                                     key={f}
-                                    onClick={() => toggleItem(faults, setFaults, f)}
+                                    onClick={() => toggleItem(setFaults, f)}
                                     className={`px-4 py-2 rounded-lg text-xs font-bold border transition-all ${faults.includes(f) ? 'bg-ltt-orange border-ltt-orange text-white' : 'border-glass-border text-text-muted'
                                         }`}
                                 >
@@ -198,7 +207,7 @@ const IntakePage: React.FC = () => {
                             {commonAccessories.map(a => (
                                 <button
                                     key={a}
-                                    onClick={() => toggleItem(accessories, setAccessories, a)}
+                                    onClick={() => toggleItem(setAccessories, a)}
                                     className={`px-4 py-2 rounded-lg text-xs font-bold border transition-all ${accessories.includes(a) ? 'bg-accent-blue border-accent-blue text-white' : 'border-glass-border text-text-muted'
                                         }`}
                                 >
@@ -288,7 +297,7 @@ const IntakePage: React.FC = () => {
                                 </div>
                             </div>
                             <button
-                                onClick={handleSubmit}
+                                onClick={() => setShowTerms(true)}
                                 disabled={isSaving}
                                 className="btn-primary w-full py-4 flex items-center justify-center gap-3 text-lg font-black shadow-lg shadow-ltt-orange/40"
                             >
