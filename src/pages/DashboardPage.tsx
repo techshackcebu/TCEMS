@@ -40,6 +40,7 @@ const DashboardPage: React.FC = () => {
     });
     const [loading, setLoading] = useState(false);
     const [showAudit, setShowAudit] = useState(false);
+    const [auditLogs, setAuditLogs] = useState<any[]>([]);
 
     React.useEffect(() => {
         const fetchStats = async () => {
@@ -69,6 +70,21 @@ const DashboardPage: React.FC = () => {
 
             const dailyRev = dailyPayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
             const monthlyRev = monthlyPayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+
+            // Fetch Audit Logs (Recent 10)
+            const { data: recentAudit } = await supabase
+                .from('payments')
+                .select(`
+                    *,
+                    repair_tickets (
+                        ticket_number,
+                        customers (full_name)
+                    )
+                `)
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (recentAudit) setAuditLogs(recentAudit);
 
             setStats(prev => ({
                 ...prev,
@@ -148,20 +164,18 @@ const DashboardPage: React.FC = () => {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-white/5">
-                                                {[
-                                                    { time: '2026-03-01 04:30', desc: 'Repair Ticket Release', ent: 'Cathy Clumsy', val: '₱2,500' },
-                                                    { time: '2026-03-01 04:15', desc: 'Warranty Validation', ent: 'Arthur Pendragon', val: '₱0' },
-                                                    { time: '2026-03-01 02:45', desc: 'Part Sourcing Order', ent: 'Kowloon Parts', val: '-₱12,400' },
-                                                    { time: '2026-02-28 22:15', desc: 'L3 Specialist Payout', ent: 'MasterTech Alpha', val: '-₱8,500' },
-                                                    { time: '2026-02-28 20:00', desc: 'Consolidated Daily Drop', ent: 'Mandaue Center', val: '₱45,400' },
-                                                ].map((row, i) => (
+                                                {auditLogs.length > 0 ? auditLogs.map((row, i) => (
                                                     <tr key={i} className="hover:bg-white/5 transition-colors">
-                                                        <td className="py-4 text-text-muted">{row.time}</td>
-                                                        <td className="py-4">{row.desc}</td>
-                                                        <td className="py-4 text-accent-blue">{row.ent}</td>
-                                                        <td className={`py-4 text-right font-mono ${row.val.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>{row.val}</td>
+                                                        <td className="py-4 text-text-muted">{new Date(row.created_at).toLocaleString()}</td>
+                                                        <td className="py-4">{row.payment_type} Payment #{row.repair_tickets?.ticket_number}</td>
+                                                        <td className="py-4 text-accent-blue">{row.repair_tickets?.customers?.full_name || 'System'}</td>
+                                                        <td className="py-4 text-right font-mono text-green-400">₱{Number(row.amount_paid).toLocaleString()}</td>
                                                     </tr>
-                                                ))}
+                                                )) : (
+                                                    <tr>
+                                                        <td colSpan={4} className="py-10 text-center text-text-muted opacity-20">No transaction nodes detected in current cycle.</td>
+                                                    </tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>

@@ -84,19 +84,6 @@ const LoginPage: React.FC = () => {
                     </button>
                 </form>
 
-                <div className="mt-8 space-y-4">
-                    <button
-                        onClick={() => {
-                            localStorage.setItem('sales_demo', 'true');
-                            window.location.reload();
-                        }}
-                        className="w-full py-3 bg-white/5 border border-dashed border-ltt-orange/40 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-ltt-orange hover:bg-ltt-orange/10 transition-all flex items-center justify-center gap-2"
-                    >
-                        <ShieldCheck size={14} /> Buyer Review: Rapid Boot Mode
-                    </button>
-                    <p className="text-[8px] text-text-muted text-center italic opacity-60">Allows instant dashboard inspection without auth credentials (Sales Mode)</p>
-                </div>
-
                 <div className="mt-10 border-t border-glass-border pt-6 flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-text-muted opacity-40">
                     <span>Encrypted Socket SHA-256</span>
                     <span>Mandaue Center HUB</span>

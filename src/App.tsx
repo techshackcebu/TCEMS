@@ -111,17 +111,6 @@ const App: React.FC = () => {
 
   const menuItems = allMenuItems.filter(item => userRole ? item.roles.includes(userRole) : false);
 
-  // SALES DEMO / BUYER BYPASS (High Urgency Sales Pitch)
-  useEffect(() => {
-    const isSalesDemo = localStorage.getItem('sales_demo') === 'true';
-    if (!session && (import.meta.env.DEV || isSalesDemo)) {
-      const mockSession = { user: { email: 'demo@techshack.ph' } } as any;
-      setSession(mockSession);
-      setUserRole(1); // Admin role
-      if (isSalesDemo) console.warn("App running in SALES DEMO mode (Auth Bypass)");
-    }
-  }, [session]);
-
   const handleLogout = async () => {
     localStorage.removeItem('sales_demo');
     await supabase.auth.signOut();

@@ -100,6 +100,14 @@ const POSBoard: React.FC = () => {
             .eq('id', selectedTicket.id);
 
         if (!error) {
+            // Also insert into payments table for the Audit Ledger
+            await supabase.from('payments').insert([{
+                ticket_id: selectedTicket.id,
+                amount_paid: paymentAmount,
+                payment_type: paymentRecord.type,
+                payment_method: paymentMethod
+            }]);
+
             // Refresh list and clear selection
             fetchActiveTickets();
             setSelectedTicket(null);
