@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TCEMS</string>
+    <string name="title_activity_main">TCEMS</string>
+    <string name="package_name">com.techshack.tcems</string>
+    <string name="custom_url_scheme">com.techshack.tcems</string>
+</resources>
