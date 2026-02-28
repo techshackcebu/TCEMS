@@ -213,7 +213,12 @@ const AnalyticsPage: React.FC = () => {
                     <div className="glass-card p-6 border-glass-border space-y-6">
                         <div className="flex justify-between items-center border-b border-glass-border pb-4">
                             <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2"><TrendingUp size={16} className="text-ltt-orange" /> Growth Node ({timeFilter})</h3>
-                            <button className="text-[10px] font-black uppercase underline text-ltt-orange">Download Full Ledger</button>
+                            <button
+                                onClick={() => alert("Hyper-Ledger Generation: Compiling revenue series into PDF archive... [SYSTEM MOCK]")}
+                                className="text-[10px] font-black uppercase underline text-ltt-orange"
+                            >
+                                Download Full Ledger
+                            </button>
                         </div>
                         <div className="h-64 flex items-end gap-2 justify-between px-2 pt-10 relative">
                             {data?.revenueSeries.map((h, i) => (

@@ -116,7 +116,10 @@ const DashboardPage: React.FC = () => {
                         <Settings2 size={12} className="ml-2 text-text-muted opacity-20" />
                     </div>
 
-                    <button className="flex-1 lg:flex-none h-14 px-8 bg-white/5 hover:bg-white/10 border border-glass-border rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 transition-all">
+                    <button
+                        onClick={() => alert("Enterprise Audit Ledger: Accessing historical financial nodes... [SYSTEM MOCK]")}
+                        className="flex-1 lg:flex-none h-14 px-8 bg-white/5 hover:bg-white/10 border border-glass-border rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 transition-all"
+                    >
                         <History size={18} /> Audit Ledger
                     </button>
                     <button className="flex-1 lg:flex-none h-14 px-8 bg-ltt-orange hover:bg-ltt-orange/90 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-2xl shadow-ltt-orange/40">
@@ -216,7 +219,12 @@ const DashboardPage: React.FC = () => {
                         <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-3">
                             <Users size={18} className="text-accent-blue" /> Specialist Roster
                         </h4>
-                        <button className="text-[10px] font-black uppercase tracking-widest text-accent-blue hover:underline">View All</button>
+                        <button
+                            onClick={() => alert("Roster Management: Standard L3 Specialist roles are currently fixed in this build.")}
+                            className="text-[10px] font-black uppercase tracking-widest text-accent-blue hover:underline"
+                        >
+                            View All
+                        </button>
                     </div>
 
                     <div className="space-y-6">

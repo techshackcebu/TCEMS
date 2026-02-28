@@ -155,7 +155,12 @@ const PartsBoard: React.FC = () => {
 
                             <div className="pt-3 border-t border-glass-border flex justify-between items-center opacity-40 group-hover:opacity-100 transition-opacity">
                                 <span className="text-[8px] font-black uppercase tracking-widest">{new Date(req.created_at).toLocaleDateString()}</span>
-                                <button className="text-text-muted hover:text-white transition-colors"><MoreHorizontal size={14} /></button>
+                                <button
+                                    onClick={() => alert("Procurement Intel: Full inquiry history sub-frame is currently being calculated...")}
+                                    className="text-text-muted hover:text-white transition-colors"
+                                >
+                                    <MoreHorizontal size={14} />
+                                </button>
                             </div>
                         </motion.div>
                     ))}

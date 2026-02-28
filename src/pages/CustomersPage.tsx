@@ -114,7 +114,10 @@ const CustomersPage: React.FC = () => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
-                    <button className="bg-ltt-orange hover:bg-ltt-orange/90 text-white px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest flex items-center gap-2 shadow-lg shadow-ltt-orange/20 transition-all hover:scale-105 active:scale-95">
+                    <button
+                        onClick={() => alert("Client Registration: Form node initializing... [SYSTEM MOCK]")}
+                        className="bg-ltt-orange hover:bg-ltt-orange/90 text-white px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest flex items-center gap-2 shadow-lg shadow-ltt-orange/20 transition-all hover:scale-105 active:scale-95"
+                    >
                         <UserPlus size={18} /> Add Client
                     </button>
                 </div>

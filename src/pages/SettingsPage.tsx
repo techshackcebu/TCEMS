@@ -47,7 +47,10 @@ const SettingsPage: React.FC = () => {
                     </p>
                 </div>
 
-                <button className="bg-accent-blue hover:bg-accent-blue/90 text-white px-8 h-14 rounded-2xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3 shadow-2xl shadow-accent-blue/40 transition-all hover:scale-105 active:scale-95">
+                <button
+                    onClick={() => alert("Deploying System Kernel: Global configuration sync with Supabase cloud initiated... [OK]")}
+                    className="bg-accent-blue hover:bg-accent-blue/90 text-white px-8 h-14 rounded-2xl font-black uppercase text-xs tracking-[0.3em] flex items-center gap-3 shadow-2xl shadow-accent-blue/40 transition-all hover:scale-105 active:scale-95"
+                >
                     <Save size={20} /> Deploy Configuration
                 </button>
             </header>

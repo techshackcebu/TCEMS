@@ -12,7 +12,8 @@ import {
     Upload,
     Package,
     Search,
-    Loader2
+    Loader2,
+    MoreHorizontal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -218,7 +219,20 @@ const InventoryBoard: React.FC = () => {
                                         <h3 className="text-lg font-black uppercase leading-tight group-hover:text-ltt-orange transition-colors">{prod.name}</h3>
                                         <p className="text-[10px] text-text-muted opacity-60 font-medium italic">{prod.description}</p>
                                     </div>
-                                    <button className="text-text-muted hover:text-white"><MoreVertical size={18} /></button>
+                                    <div className="flex gap-2"> {/* Added a div to contain multiple buttons */}
+                                        <button
+                                            onClick={() => alert("Procurement Intel: Full inquiry history sub-frame is currently being calculated...")}
+                                            className="text-text-muted hover:text-white transition-colors"
+                                        >
+                                            <MoreHorizontal size={14} />
+                                        </button>
+                                        <button
+                                            onClick={() => alert("Asset Operations: Modification sub-routine locked for this user level.")}
+                                            className="text-text-muted hover:text-white"
+                                        >
+                                            <MoreVertical size={18} />
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 mb-6">
