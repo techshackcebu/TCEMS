@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import TermsModal from '../components/TermsModal';
 import ThermalLabel from '../components/ThermalLabel';
+import { localDB } from '../lib/db';
 
 interface Customer {
     id: string;
@@ -112,8 +113,41 @@ const IntakePage: React.FC = () => {
         setIsSaving(true);
 
         try {
-            // 1. Upsert Customer
             let customerId = customer?.id;
+
+            if (!navigator.onLine) {
+                // --- OFFLINE ROUTING ---
+                const tempId = `temp-cust-${Date.now()}`;
+                customerId = customerId || tempId;
+
+                // Queue Customer
+                if (!customer?.id) {
+                    await localDB.syncQueue.add({ action: 'insert', table: 'customers', payload: { id: customerId, phone, full_name: fullName || 'Walk-in Customer' }, status: 'pending', created_at: Date.now() });
+                } else if (customer && fullName && customer.full_name !== fullName) {
+                    await localDB.syncQueue.add({ action: 'update', table: 'customers', payload: { id: customerId, full_name: fullName }, status: 'pending', created_at: Date.now() });
+                }
+
+                // Queue Device
+                const deviceId = `temp-dev-${Date.now()}`;
+                await localDB.syncQueue.add({ action: 'insert', table: 'devices', payload: { id: deviceId, customer_id: customerId, brand: device.brand, model: device.model, serial_number: device.serial, color: device.color, device_type: device.type }, status: 'pending', created_at: Date.now() });
+
+                // Queue Ticket
+                const ticketStatus = isFastTrack ? 'Checking' : 'Pending';
+                const probingData = { occurrence: probing.occurrence, previousRepair: probing.previousRepair, troubleshooting: probing.troubleshooting, cs_best_practices: csTroubleshooting, faults: faults };
+                await localDB.syncQueue.add({ action: 'insert', table: 'repair_tickets', payload: { customer_id: customerId, device_id: deviceId, device_password: password, probing_history: probingData, accessories: accessories, photos: photos, status: ticketStatus, priority: isFastTrack ? 'High' : 'Medium' }, status: 'pending', created_at: Date.now() });
+
+                setTimeout(() => {
+                    window.print();
+                    alert(`OFFLINE MODE: Network down. Ticket securely queued in Local Cache.\nIt will auto-sync to Cloud when internet is restored.\n\nPrinting Temporary Sticker...`);
+                    setPhone(''); setFullName(''); setCustomer(null); setDevice({ type: 'Laptop', brand: '', model: '', serial: '', color: '' }); setPassword(''); setProbing({ occurrence: '', previousRepair: 'No', troubleshooting: '' }); setFaults([]); setAccessories([]); setPhotos([]); setCsTroubleshooting([]);
+                }, 500);
+
+                setIsSaving(false);
+                return;
+            }
+
+            // --- ONLINE ROUTING ---
+            // 1. Upsert Customer
             if (!customerId) {
                 // Insert New Customer
                 const { data: newCust, error: custErr } = await supabase

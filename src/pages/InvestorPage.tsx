@@ -17,7 +17,8 @@ import {
     Receipt,
     History,
     Calendar,
-    ArrowDownRight
+    ArrowDownRight,
+    ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

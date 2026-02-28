@@ -16,13 +16,17 @@ import EarningsPage from './pages/EarningsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import DiagnosticFlow from './components/DiagnosticFlow';
 import { supabase } from './lib/supabase';
+import { localDB, type OfflineTicketTask } from './lib/db';
 import type { Session } from '@supabase/supabase-js';
-import { LayoutGrid, ClipboardCheck, Users, Box, Settings, LogOut, Users2, Landmark, History, FileText, ChevronLeft, Package, CreditCard, Search, ShieldCheck, LayoutDashboard, QrCode, Smartphone, Monitor, User, PieChart } from 'lucide-react';
+import { LayoutGrid, ClipboardCheck, Users, Box, Settings, LogOut, Users2, Landmark, History, FileText, ChevronLeft, Package, CreditCard, Search, ShieldCheck, LayoutDashboard, QrCode, Smartphone, Monitor, User, PieChart, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [currentPage, setCurrentPage] = useState('Intake');
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [pendingSyncCount, setPendingSyncCount] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -33,8 +37,48 @@ const App: React.FC = () => {
       setSession(session);
     });
 
-    return () => subscription.unsubscribe();
+    // Offline handlers
+    const handleOnline = () => { setIsOnline(true); processSyncQueue(); };
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Initial sync count
+    checkSyncCount();
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    }
   }, []);
+
+  const checkSyncCount = async () => {
+    const count = await localDB.syncQueue.where('status').equals('pending').count();
+    setPendingSyncCount(count);
+  };
+
+  const processSyncQueue = async () => {
+    setIsSyncing(true);
+    const pendingTasks = await localDB.syncQueue.where('status').equals('pending').toArray();
+
+    for (const task of pendingTasks) {
+      try {
+        if (task.action === 'insert') {
+          await supabase.from(task.table).insert(task.payload);
+        } else if (task.action === 'update') {
+          // Assuming payload has id for update
+          await supabase.from(task.table).update(task.payload).eq('id', task.payload.id);
+        }
+        await localDB.syncQueue.delete(task.local_id!);
+      } catch (e) {
+        console.error('Failed to sync offline task:', e);
+      }
+    }
+    checkSyncCount();
+    setIsSyncing(false);
+  };
 
   const menuItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
@@ -107,10 +151,18 @@ const App: React.FC = () => {
       <aside className="w-64 border-r border-glass-border bg-bg-slate fixed h-full p-4 flex flex-col justify-between hidden md:flex overflow-y-auto scrollbar-thin">
         <div className="space-y-8">
           <div className="flex items-center gap-3 px-2 pt-4">
-            <div className="w-10 h-10 bg-ltt-orange rounded-full flex items-center justify-center font-black text-xl">TS</div>
-            <div>
-              <h1 className="text-xl font-black tracking-tight uppercase">TechShack</h1>
-              <p className="text-[10px] font-black tracking-widest text-text-muted uppercase italic opacity-40">Mandaue Center</p>
+            <div className="w-10 h-10 bg-ltt-orange rounded-full flex items-center justify-center font-black text-xl shadow-[0_0_15px_rgba(241,90,36,0.3)]">TS</div>
+            <div className="flex-1">
+              <h1 className="text-xl font-black tracking-tight uppercase leading-none">TechShack</h1>
+              <p className="text-[10px] font-black tracking-widest text-text-muted uppercase italic opacity-60">Operations v2.0</p>
+            </div>
+            {/* NETWORK STATUS INDICATOR */}
+            <div className={`p-2 rounded-xl border flex flex-col items-center justify-center transition-colors ${isOnline
+                ? 'bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]'
+                : 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)] animate-pulse'
+              }`} title={isOnline ? "System Online & Synced" : "System Offline - Local Mode"}>
+              {isSyncing ? <RefreshCw size={16} className="animate-spin" /> : (isOnline ? <Wifi size={16} /> : <WifiOff size={16} />)}
+              {pendingSyncCount > 0 && <span className="text-[8px] font-black mt-1 uppercase tracking-widest">{pendingSyncCount} QUEUED</span>}
             </div>
           </div>
 
