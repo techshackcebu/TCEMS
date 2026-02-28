@@ -1,10 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import IntakePage from './pages/IntakePage';
 import TicketsPage from './pages/TicketsPage';
-import { LayoutGrid, ClipboardCheck, Users, Box, Settings, LogOut, PackageSearch, Receipt, Users2, Landmark, History, FileText } from 'lucide-react';
+import LoginPage from './pages/LoginPage';
+import DiagnosticFlow from './components/DiagnosticFlow';
+import { supabase } from './lib/supabase';
+import { Session } from '@supabase/supabase-js';
+import { LayoutGrid, ClipboardCheck, Users, Box, Settings, LogOut, PackageSearch, Receipt, Users2, Landmark, History, FileText, ChevronLeft } from 'lucide-react';
 
 const App: React.FC = () => {
+  const [session, setSession] = useState<Session | null>(null);
   const [currentPage, setCurrentPage] = useState('Intake');
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const menuItems = [
     { name: 'Dashboard', icon: <LayoutGrid size={20} /> },
@@ -20,10 +38,28 @@ const App: React.FC = () => {
     { name: 'Settings', icon: <Settings size={20} /> },
   ];
 
+  if (!session) return <LoginPage />;
+
   const renderContent = () => {
+    if (currentPage === 'Repair Tickets' && selectedTicketId) {
+      return (
+        <div className="space-y-6">
+          <button
+            onClick={() => setSelectedTicketId(null)}
+            className="text-ltt-orange flex items-center gap-2 text-xs font-black uppercase tracking-widest hover:-translate-x-1 transition-transform mb-4"
+          >
+            <ChevronLeft size={16} /> Back to Board
+          </button>
+          <h1 className="text-3xl font-black uppercase tracking-tight">Diagnostic & Inspection Phase</h1>
+          <p className="text-text-muted mt-1 italic font-medium">Record observations and trigger parts inquiries for TKT-ID: {selectedTicketId.slice(0, 8)}</p>
+          <DiagnosticFlow />
+        </div>
+      );
+    }
+
     switch (currentPage) {
       case 'Intake': return <IntakePage />;
-      case 'Repair Tickets': return <TicketsPage />;
+      case 'Repair Tickets': return <TicketsPage onSelectTicket={setSelectedTicketId} />;
       default: return (
         <div className="flex flex-col items-center justify-center p-20 text-center space-y-4">
           <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-ltt-orange animate-pulse">
@@ -43,14 +79,17 @@ const App: React.FC = () => {
         <div className="space-y-8">
           <div className="flex items-center gap-3 px-2 pt-4">
             <div className="w-10 h-10 bg-ltt-orange rounded-full flex items-center justify-center font-black text-xl">TS</div>
-            <h1 className="text-xl font-black tracking-tight uppercase">TechShack</h1>
+            <div>
+              <h1 className="text-xl font-black tracking-tight uppercase">TechShack</h1>
+              <p className="text-[10px] font-black tracking-widest text-text-muted uppercase italic opacity-40">Mandaue Center</p>
+            </div>
           </div>
 
           <nav className="space-y-0.5">
             {menuItems.map(item => (
               <button
                 key={item.name}
-                onClick={() => setCurrentPage(item.name)}
+                onClick={() => { setCurrentPage(item.name); setSelectedTicketId(null); }}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-sm font-bold ${currentPage === item.name
                     ? 'bg-ltt-orange text-white shadow-lg shadow-ltt-orange/20'
                     : 'text-text-muted hover:bg-white/5 hover:text-white'
@@ -63,10 +102,16 @@ const App: React.FC = () => {
           </nav>
         </div>
 
-        <button className="flex items-center gap-3 px-4 py-3 mt-6 text-text-muted hover:text-red-400 transition-colors font-medium">
-          <LogOut size={20} />
-          Logout
-        </button>
+        <div className="pt-6 border-t border-glass-border">
+          <p className="text-[10px] uppercase font-black text-text-muted px-4 mb-2 truncate">{session.user.email?.split('@')[0]}</p>
+          <button
+            onClick={() => supabase.auth.signOut()}
+            className="w-full flex items-center gap-3 px-4 py-3 text-text-muted hover:text-red-400 transition-colors font-medium"
+          >
+            <LogOut size={20} />
+            Logout
+          </button>
+        </div>
       </aside>
 
       {/* MAIN CONTENT */}
@@ -81,7 +126,7 @@ const App: React.FC = () => {
         {menuItems.slice(0, 4).map(item => (
           <button
             key={item.name}
-            onClick={() => setCurrentPage(item.name)}
+            onClick={() => { setCurrentPage(item.name); setSelectedTicketId(null); }}
             className={`flex flex-col items-center gap-1 ${currentPage === item.name ? 'text-ltt-orange' : 'text-text-muted'}`}
           >
             {item.icon}

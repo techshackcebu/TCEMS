@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Printer, UserPlus, Save, Camera, Plus, X, Laptop, Monitor, Gamepad2, Layers } from 'lucide-react';
+import { Search, Printer, UserPlus, Save, Camera, Plus, X, Laptop, Monitor, Gamepad2, Layers, ClipboardCheck, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -21,6 +21,12 @@ const IntakePage: React.FC = () => {
         model: '',
         serial: '',
         color: ''
+    });
+    const [password, setPassword] = useState('');
+    const [probing, setProbing] = useState({
+        occurrence: '',
+        previousRepair: 'No',
+        troubleshooting: ''
     });
     const [faults, setFaults] = useState<string[]>([]);
     const [otherFault, setOtherFault] = useState('');
@@ -138,6 +144,44 @@ const IntakePage: React.FC = () => {
                         )}
                     </section>
 
+                    {/* PROBING & SECURITY */}
+                    <section className="glass-card space-y-4 border-l-4 border-accent-blue">
+                        <h2 className="text-sm font-black uppercase tracking-widest text-accent-blue flex items-center gap-2">
+                            <ClipboardCheck size={16} /> Initial Probing & Security
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-[10px] uppercase font-black text-text-muted ml-2">Device Password / PIN</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
+                                    <input className="input-field pl-9 font-mono" placeholder="Ask customer for password..." value={password} onChange={e => setPassword(e.target.value)} />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[10px] uppercase font-black text-text-muted ml-2">When did the issue start?</label>
+                                <input className="input-field" placeholder="e.g. Yesterday after update..." value={probing.occurrence} onChange={e => setProbing({ ...probing, occurrence: e.target.value })} />
+                            </div>
+                        </div>
+                        <div className="space-y-3">
+                            <label className="text-[10px] uppercase font-black text-text-muted ml-2">Has this been checked by other technicians?</label>
+                            <div className="flex gap-2">
+                                {['No', 'Yes - Unauthorized', 'Yes - Official Center'].map(opt => (
+                                    <button
+                                        key={opt}
+                                        onClick={() => setProbing({ ...probing, previousRepair: opt })}
+                                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase border transition-all ${probing.previousRepair === opt ? 'bg-accent-blue border-accent-blue text-white shadow-lg shadow-accent-blue/20' : 'border-glass-border text-text-muted hover:bg-white/5'}`}
+                                    >
+                                        {opt}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-[10px] uppercase font-black text-text-muted ml-2">Any basic troubleshooting done?</label>
+                            <textarea className="input-field text-sm min-h-[80px]" placeholder="e.g. Tried different charger, hard reset, force restart..." value={probing.troubleshooting} onChange={e => setProbing({ ...probing, troubleshooting: e.target.value })} />
+                        </div>
+                    </section>
+
                     {/* DEVICE TYPE SELECTOR */}
                     <section className="glass-card space-y-4">
                         <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange">Device Category</h2>
@@ -156,7 +200,7 @@ const IntakePage: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* DEVICE SPECS */}
+                    {/* DEVICE SPECS (BRAND, MODEL, SERIAL, COLOR) */}
                     <section className="glass-card space-y-4">
                         <h2 className="text-sm font-black uppercase tracking-widest text-ltt-orange">Specifications</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -250,14 +294,13 @@ const IntakePage: React.FC = () => {
                     </section>
                 </div>
 
-                {/* PRINTING & STICKER PREVIEW SIDEBAR */}
+                {/* SIDEBAR PREVIEW */}
                 <div className="space-y-6 lg:sticky lg:top-8 h-fit">
                     <div className="glass-card bg-white/5 border-ltt-orange/30 p-4 space-y-4 shadow-2xl">
                         <h2 className="text-xs font-black uppercase tracking-widest text-ltt-orange text-center flex items-center justify-center gap-2">
                             <Printer size={14} /> P2 Sticker Preview
                         </h2>
 
-                        {/* 40x46mm PREVIEW */}
                         <div className="mx-auto w-[150px] h-[173px] bg-white text-black p-3 relative flex flex-col justify-between shadow-2xl rounded-sm">
                             <div className="border-b-2 border-black pb-1">
                                 <p className="text-[12px] font-black leading-tight uppercase">TechShack</p>
@@ -303,14 +346,6 @@ const IntakePage: React.FC = () => {
                             >
                                 {isSaving ? 'Registering...' : <><Save size={24} /> Confirm Intake</>}
                             </button>
-                        </div>
-                    </div>
-
-                    <div className="p-4 rounded-xl border border-dashed border-glass-border text-center space-y-2">
-                        <p className="text-[10px] font-bold text-text-muted uppercase">Bluetooth Hardware Status</p>
-                        <div className="flex items-center justify-center gap-2 text-[10px] font-black">
-                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm animate-pulse"></div>
-                            <span className="uppercase">P2 Sticker Printer Connected</span>
                         </div>
                     </div>
                 </div>

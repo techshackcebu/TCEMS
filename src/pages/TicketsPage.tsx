@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface Ticket {
     id: string;
     ticket_number: number;
-    status: 'Pending' | 'In Progress' | 'Waiting for Parts' | 'Done' | 'Released' | 'Cancelled';
+    status: 'Pending' | 'In Progress' | 'Checking' | 'Waiting for Parts' | 'Repairing' | 'Done' | 'Released' | 'Cancelled';
     priority: 'Low' | 'Medium' | 'High' | 'Urgent';
     customer_id: string;
     customers: { full_name: string; phone: string };
@@ -16,7 +16,11 @@ interface Ticket {
     fault_report?: string;
 }
 
-const TicketsPage: React.FC = () => {
+interface TicketsPageProps {
+    onSelectTicket: (id: string) => void;
+}
+
+const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -25,7 +29,6 @@ const TicketsPage: React.FC = () => {
     useEffect(() => {
         fetchTickets();
 
-        // Set up real-time subscription
         const channel = supabase
             .channel('repair_tickets_changes')
             .on(
@@ -65,7 +68,8 @@ const TicketsPage: React.FC = () => {
 
     const statusColors: Record<string, string> = {
         'Pending': 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
-        'In Progress': 'bg-accent-blue/10 text-accent-blue border-accent-blue/20',
+        'Checking': 'bg-accent-blue/10 text-accent-blue border-accent-blue/20',
+        'Repairing': 'bg-ltt-orange/10 text-ltt-orange border-ltt-orange/20',
         'Waiting for Parts': 'bg-purple-500/10 text-purple-500 border-purple-500/20',
         'Done': 'bg-green-500/10 text-green-500 border-green-500/20',
         'Released': 'bg-white/10 text-white/50 border-white/20',
@@ -109,15 +113,12 @@ const TicketsPage: React.FC = () => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
-                    <button className="btn-primary flex items-center gap-2">
-                        <Filter size={18} />
-                    </button>
                 </div>
             </header>
 
             {/* STATUS FILTER TABS */}
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-                {['All', 'Pending', 'In Progress', 'Waiting for Parts', 'Done', 'Released'].map(status => (
+                {['All', 'Pending', 'Checking', 'Waiting for Parts', 'Repairing', 'Done', 'Released'].map(status => (
                     <button
                         key={status}
                         onClick={() => setStatusFilter(status)}
@@ -148,7 +149,7 @@ const TicketsPage: React.FC = () => {
                                 className="glass-card hover:border-ltt-orange/50 transition-all group overflow-hidden"
                             >
                                 <div className="flex justify-between items-start mb-4">
-                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border ${statusColors[ticket.status]}`}>
+                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border ${statusColors[ticket.status] || statusColors['Pending']}`}>
                                         {ticket.status}
                                     </span>
                                     <button className="text-text-muted hover:text-white transition-all">
@@ -176,13 +177,15 @@ const TicketsPage: React.FC = () => {
                                                 {ticket.priority} Priority
                                             </span>
                                         </div>
-                                        <button className="text-ltt-orange flex items-center gap-1 text-xs font-black uppercase tracking-widest hover:translate-x-1 transition-transform">
+                                        <button
+                                            onClick={() => onSelectTicket(ticket.id)}
+                                            className="text-ltt-orange flex items-center gap-1 text-xs font-black uppercase tracking-widest hover:translate-x-1 transition-transform"
+                                        >
                                             Inspect <ArrowUpRight size={14} />
                                         </button>
                                     </div>
                                 </div>
 
-                                {/* VISUAL ACCENT PIECE (LTT STYLE) */}
                                 <div className="absolute top-0 right-0 w-16 h-16 bg-ltt-orange/5 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-ltt-orange/10 transition-all"></div>
                             </motion.div>
                         ))}
