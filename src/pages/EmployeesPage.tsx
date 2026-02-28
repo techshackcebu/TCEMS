@@ -23,9 +23,11 @@ import {
     QrCode,
     Camera,
     Upload,
-    X
+    X,
+    Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 
 type EmployeeRole = 'Admin' | 'HR' | 'Technician L2' | 'MasterTechnician' | 'Customer Service' | 'Operations Manager' | 'OJT/Trainee';
 
@@ -76,6 +78,57 @@ const EmployeesPage: React.FC = () => {
     const [search, setSearch] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
     const [isAdding, setIsAdding] = useState(false);
+    const [signupForm, setSignupForm] = useState({
+        email: '',
+        password: '',
+        fullName: '',
+        role: 'MasterTechnician',
+        nickName: '',
+        phone: '',
+        pin: ''
+    });
+    const [signupLoading, setSignupLoading] = useState(false);
+    const [signupError, setSignupError] = useState('');
+
+    const handleSignup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSignupLoading(true);
+        setSignupError('');
+
+        // Step 1: Create the secure authentication identity
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: signupForm.email,
+            password: signupForm.password,
+            options: { data: { full_name: signupForm.fullName } }
+        });
+
+        if (authError) {
+            setSignupError(authError.message);
+            setSignupLoading(false);
+            return;
+        }
+
+        // Map Roles to Database IDs
+        const roleMap: Record<string, number> = {
+            'Admin': 1, 'HR': 2, 'Technician L2': 3, 'MasterTechnician': 4,
+            'Customer Service': 5, 'Operations Manager': 6, 'OJT/Trainee': 7
+        };
+
+        // Step 2: Push their identity to the physical Staff Profile Table
+        if (authData.user) {
+            await supabase.from('profiles').insert({
+                id: authData.user.id,
+                full_name: signupForm.fullName,
+                phone: signupForm.phone,
+                role_id: roleMap[signupForm.role] || 7
+            });
+            // Note: PIN Code requires a schema update, bypassing to standard profile for now.
+        }
+
+        setIsAdding(false);
+        setSignupLoading(false);
+        alert(`Successfully initialized ${signupForm.fullName} into the database!`);
+    };
 
     // Note: generateEmployeeId will be used when implementing the save functionality
     /* 
@@ -319,20 +372,31 @@ const EmployeesPage: React.FC = () => {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <h2 className="text-2xl font-black uppercase tracking-tight">Personnel Intake Node</h2>
-                                    <p className="text-[10px] font-black uppercase text-text-muted opacity-60 tracking-widest italic mt-1">Enrollment Sequence #00{employees.length + 1}</p>
+                                    <p className="text-[10px] font-black uppercase text-text-muted opacity-60 tracking-widest italic mt-1">Official Supabase Auth Provisioning</p>
                                 </div>
                                 <button onClick={() => setIsAdding(false)} className="p-3 bg-white/5 rounded-full"><X size={20} /></button>
                             </div>
 
-                            <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setIsAdding(false); }}>
+                            <form className="space-y-6" onSubmit={handleSignup}>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase text-text-muted tracking-widest ml-2">Secure Link Email</label>
+                                        <input type="email" required className="input-field h-14 bg-black/40 text-sm font-bold" value={signupForm.email} onChange={e => setSignupForm({ ...signupForm, email: e.target.value })} placeholder="staff@techshack.ph" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase text-text-muted tracking-widest ml-2 flex items-center gap-1"><Lock size={10} /> Access Key (Password)</label>
+                                        <input type="password" required className="input-field h-14 bg-black/40 text-sm font-bold" minLength={6} value={signupForm.password} onChange={e => setSignupForm({ ...signupForm, password: e.target.value })} placeholder="••••••••" />
+                                    </div>
+                                </div>
+
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase text-text-muted tracking-widest ml-2">Full Legal Name</label>
-                                        <input className="input-field h-14 bg-black/40 text-sm font-bold" placeholder="EX: JUAN DELA CRUZ" />
+                                        <input required className="input-field h-14 bg-black/40 text-sm font-bold" value={signupForm.fullName} onChange={e => setSignupForm({ ...signupForm, fullName: e.target.value })} placeholder="EX: JUAN DELA CRUZ" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase text-text-muted tracking-widest ml-2">Role Classification</label>
-                                        <select className="input-field h-14 bg-black/40 text-sm font-bold appearance-none">
+                                        <select className="input-field h-14 bg-black/40 text-sm font-bold appearance-none" value={signupForm.role} onChange={e => setSignupForm({ ...signupForm, role: e.target.value })}>
                                             <option>MasterTechnician</option>
                                             <option>Technician L2</option>
                                             <option>HR</option>
@@ -344,24 +408,28 @@ const EmployeesPage: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase text-text-muted tracking-widest ml-2">Nickname</label>
-                                        <input className="input-field h-12 bg-black/40 text-sm font-bold" />
+                                        <input className="input-field h-12 bg-black/40 text-sm font-bold" value={signupForm.nickName} onChange={e => setSignupForm({ ...signupForm, nickName: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase text-text-muted tracking-widest ml-2">Contact (+63)</label>
-                                        <input className="input-field h-12 bg-black/40 text-sm font-bold" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-text-muted tracking-widest ml-2">Joined Date</label>
-                                        <input type="date" value={new Date().toISOString().split('T')[0]} className="input-field h-12 bg-black/40 text-sm font-bold" />
+                                        <input className="input-field h-12 bg-black/40 text-sm font-bold" value={signupForm.phone} onChange={e => setSignupForm({ ...signupForm, phone: e.target.value })} />
                                     </div>
                                 </div>
 
-                                <p className="text-[9px] font-black uppercase text-ltt-orange italic text-center opacity-60 border-t border-glass-border/40 pt-6">Advanced metadata fields (Blood Type, Bank Info, Emergency Contacts) are configured via Profile Editor post-intake.</p>
+                                {signupError && (
+                                    <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase rounded-lg text-center">
+                                        {signupError}
+                                    </div>
+                                )}
 
-                                <button className="w-full py-5 bg-ltt-orange hover:bg-ltt-orange/90 text-white rounded-[1.5rem] font-black uppercase text-sm tracking-[0.3em] shadow-2xl shadow-ltt-orange/40 transition-all active:scale-95"> Initialize Personnel Node </button>
+                                <p className="text-[9px] font-black uppercase text-ltt-orange italic text-center opacity-60 border-t border-glass-border/40 pt-6">The system will securely encrypt and inject this Employee into the global Active Directory.</p>
+
+                                <button disabled={signupLoading} className="w-full py-5 bg-ltt-orange hover:bg-ltt-orange/90 disabled:opacity-50 text-white rounded-[1.5rem] font-black uppercase text-sm tracking-[0.3em] shadow-2xl shadow-ltt-orange/40 transition-all active:scale-95">
+                                    {signupLoading ? 'Executing Injection...' : 'Initialize Personnel Node'}
+                                </button>
                             </form>
                         </div>
                     </div>
