@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Plus,
     MoreVertical,
@@ -11,9 +11,11 @@ import {
     X,
     Upload,
     Package,
-    Search
+    Search,
+    Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 
 type InventoryTab = 'Products' | 'Services';
 
@@ -46,16 +48,88 @@ const InventoryBoard: React.FC = () => {
     const [search, setSearch] = useState('');
     const [isAddingProduct, setIsAddingProduct] = useState(false);
     const [isAddingService, setIsAddingService] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-    const products: Product[] = [
-        { id: '1', name: 'iPhone 13 OLED Screen', description: 'Original Grade Panel', cost: 3200, price: 5500, stocks: 12, minStocks: 5, supplier: 'HK-Direct', investorLinked: 'Investor Alpha', sku: 'SCR-IP13-OLED', category: 'Screens' },
-        { id: '2', name: 'MacBook Air M1 Battery', description: 'A1234 replacement', cost: 2100, price: 4200, stocks: 3, minStocks: 5, supplier: 'Local Warehouse', investorLinked: 'Company Owned', sku: 'BAT-MBA-M1', category: 'Batteries' },
-    ];
+    const [products, setProducts] = useState<Product[]>([]);
+    const [services, setServices] = useState<Service[]>([]);
 
-    const services: Service[] = [
-        { id: 's1', name: 'Logic Board Microsoldering', description: 'IC Reballing / SMD repair', cost: 500, price: 3500, technicianPayout: 1200, category: 'Mainboard' },
-        { id: 's2', name: 'General Diagnostic', description: 'Deep inspection + Stress test', cost: 0, price: 500, technicianPayout: 150, category: 'Software' },
-    ];
+    const [prodForm, setProdForm] = useState({ name: '', description: '', cost: 0, price: 0, stocks: 0, minStocks: 5, supplier: '', investorLinked: 'Company Owned', sku: '', category: 'General' });
+    const [srvForm, setSrvForm] = useState({ name: '', description: '', cost: 0, price: 0, technicianPayout: 0, category: 'General' });
+
+    const fetchData = async () => {
+        setLoading(true);
+        const { data: prodData } = await supabase.from('inventory_products').select('*');
+        const { data: srvData } = await supabase.from('inventory_services').select('*');
+
+        if (prodData) {
+            setProducts(prodData.map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                description: p.description,
+                cost: Number(p.cost),
+                price: Number(p.price),
+                stocks: p.stocks,
+                minStocks: p.min_stocks,
+                supplier: p.supplier,
+                investorLinked: p.investor_linked,
+                sku: p.sku,
+                category: p.category
+            })));
+        }
+
+        if (srvData) {
+            setServices(srvData.map((s: any) => ({
+                id: s.id,
+                name: s.name,
+                description: s.description,
+                cost: Number(s.cost),
+                price: Number(s.price),
+                technicianPayout: Number(s.technician_payout),
+                category: s.category
+            })));
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const handleAddProduct = async () => {
+        const { error } = await supabase.from('inventory_products').insert([{
+            name: prodForm.name,
+            description: prodForm.description,
+            cost: prodForm.cost,
+            price: prodForm.price,
+            stocks: prodForm.stocks,
+            min_stocks: prodForm.minStocks,
+            supplier: prodForm.supplier,
+            investor_linked: prodForm.investorLinked,
+            sku: prodForm.sku,
+            category: prodForm.category
+        }]);
+
+        if (!error) {
+            setIsAddingProduct(false);
+            fetchData();
+        }
+    };
+
+    const handleAddService = async () => {
+        const { error } = await supabase.from('inventory_services').insert([{
+            name: srvForm.name,
+            description: srvForm.description,
+            cost: srvForm.cost,
+            price: srvForm.price,
+            technician_payout: srvForm.technicianPayout,
+            category: srvForm.category
+        }]);
+
+        if (!error) {
+            setIsAddingService(false);
+            fetchData();
+        }
+    };
 
     const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase()));
     const filteredServices = services.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
@@ -123,7 +197,12 @@ const InventoryBoard: React.FC = () => {
             {/* CONTENT GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 <AnimatePresence mode="wait">
-                    {activeTab === 'Products' ? (
+                    {loading ? (
+                        <div className="col-span-full flex flex-col items-center justify-center py-20 gap-4">
+                            <Loader2 className="animate-spin text-accent-blue" size={40} />
+                            <p className="text-xs font-black uppercase tracking-widest text-text-muted opacity-40">Synchronizing Global Asset Matrix...</p>
+                        </div>
+                    ) : activeTab === 'Products' ? (
                         filteredProducts.map((prod, idx) => (
                             <motion.div
                                 key={prod.id}
@@ -211,27 +290,27 @@ const InventoryBoard: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
                                 <div className="space-y-2 text-left">
                                     <label className="text-[9px] font-black uppercase text-text-muted tracking-widest ml-2">Product Descriptor</label>
-                                    <input className="input-field h-14 bg-black/40 text-sm font-bold" placeholder="EX: IPHONE 15 OLED GENUINE" />
+                                    <input className="input-field h-14 bg-black/40 text-sm font-bold" placeholder="EX: IPHONE 15 OLED GENUINE" value={prodForm.name} onChange={e => setProdForm({ ...prodForm, name: e.target.value })} />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[9px] font-black uppercase text-text-muted tracking-widest ml-2">Supplier Node</label>
-                                    <input className="input-field h-14 bg-black/40 text-sm font-bold" placeholder="EX: KOWLOON PARTS INC." />
+                                    <input className="input-field h-14 bg-black/40 text-sm font-bold" placeholder="EX: KOWLOON PARTS INC." value={prodForm.supplier} onChange={e => setProdForm({ ...prodForm, supplier: e.target.value })} />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[9px] font-black uppercase text-text-muted tracking-widest ml-2">Purchase Cost (₱)</label>
-                                    <input type="number" className="input-field h-14 bg-black/40 text-sm font-bold" placeholder="0.00" />
+                                    <input type="number" className="input-field h-14 bg-black/40 text-sm font-bold" placeholder="0.00" value={prodForm.cost} onChange={e => setProdForm({ ...prodForm, cost: Number(e.target.value) })} />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[9px] font-black uppercase text-text-muted tracking-widest ml-2">Retail Price (₱)</label>
-                                    <input type="number" className="input-field h-14 bg-black/40 text-sm font-bold text-green-500" placeholder="0.00" />
+                                    <input type="number" className="input-field h-14 bg-black/40 text-sm font-bold text-green-500" placeholder="0.00" value={prodForm.price} onChange={e => setProdForm({ ...prodForm, price: Number(e.target.value) })} />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[9px] font-black uppercase text-text-muted tracking-widest ml-2">Initial Stock Count</label>
-                                    <input type="number" className="input-field h-14 bg-black/40 text-sm font-bold" placeholder="0" />
+                                    <input type="number" className="input-field h-14 bg-black/40 text-sm font-bold" placeholder="0" value={prodForm.stocks} onChange={e => setProdForm({ ...prodForm, stocks: Number(e.target.value) })} />
                                 </div>
                                 <div className="space-y-2 text-left">
                                     <label className="text-[9px] font-black uppercase text-text-muted tracking-widest ml-2">Investor Linking</label>
-                                    <select className="input-field h-14 bg-black/40 text-sm font-bold appearance-none">
+                                    <select className="input-field h-14 bg-black/40 text-sm font-bold appearance-none" value={prodForm.investorLinked} onChange={e => setProdForm({ ...prodForm, investorLinked: e.target.value })}>
                                         <option>Company Owned (TechShack)</option>
                                         <option>Investor Alpha</option>
                                         <option>Mr. Beast (Investor B)</option>
@@ -244,7 +323,7 @@ const InventoryBoard: React.FC = () => {
                                 <p className="text-[10px] font-black uppercase tracking-widest text-text-muted group-hover:text-white">Upload Product Reference Image</p>
                             </div>
 
-                            <button className="w-full py-5 bg-ltt-orange text-white rounded-[1.5rem] font-black uppercase text-sm tracking-[0.3em] shadow-2xl shadow-ltt-orange/40 transition-all hover:scale-[1.02] active:scale-95"> Register Asset Node </button>
+                            <button onClick={handleAddProduct} className="w-full py-5 bg-ltt-orange text-white rounded-[1.5rem] font-black uppercase text-sm tracking-[0.3em] shadow-2xl shadow-ltt-orange/40 transition-all hover:scale-[1.02] active:scale-95"> Register Asset Node </button>
                         </div>
                     </div>
                 )}
@@ -266,26 +345,26 @@ const InventoryBoard: React.FC = () => {
                             <div className="space-y-6 text-left">
                                 <div className="space-y-2 text-left">
                                     <label className="text-[9px] font-black uppercase text-text-muted tracking-widest ml-2">Service Operation Name</label>
-                                    <input className="input-field h-14 bg-black/40 text-sm font-bold" placeholder="EX: SCREEN REPLACEMENT LABOR" />
+                                    <input className="input-field h-14 bg-black/40 text-sm font-bold" placeholder="EX: SCREEN REPLACEMENT LABOR" value={srvForm.name} onChange={e => setSrvForm({ ...srvForm, name: e.target.value })} />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 text-left">
                                     <div className="space-y-2 text-left">
                                         <label className="text-[9px] font-black uppercase text-text-muted tracking-widest ml-2">Administrative Cost (₱)</label>
-                                        <input type="number" className="input-field h-12 bg-black/40 text-sm font-bold" placeholder="0.00" />
+                                        <input type="number" className="input-field h-12 bg-black/40 text-sm font-bold" placeholder="0.00" value={srvForm.cost} onChange={e => setSrvForm({ ...srvForm, cost: Number(e.target.value) })} />
                                     </div>
                                     <div className="space-y-2 text-left">
                                         <label className="text-[9px] font-black uppercase text-text-muted tracking-widest ml-2">Customer Service Price (₱)</label>
-                                        <input type="number" className="input-field h-12 bg-black/40 text-sm font-bold text-accent-blue font-black" placeholder="0.00" />
+                                        <input type="number" className="input-field h-12 bg-black/40 text-sm font-bold text-accent-blue font-black" placeholder="0.00" value={srvForm.price} onChange={e => setSrvForm({ ...srvForm, price: Number(e.target.value) })} />
                                     </div>
                                 </div>
                                 <div className="space-y-2 text-left p-6 bg-ltt-orange/5 rounded-2xl border border-ltt-orange/20">
                                     <label className="text-[10px] font-black uppercase text-ltt-orange tracking-widest mb-2 flex items-center gap-2 text-left"><TrendingUp size={14} /> Technician Payout Configuration</label>
-                                    <input type="number" className="input-field h-14 bg-black/40 text-xl font-black font-mono text-ltt-orange border-ltt-orange/30 focus:border-ltt-orange" placeholder="0.00" />
+                                    <input type="number" className="input-field h-14 bg-black/40 text-xl font-black font-mono text-ltt-orange border-ltt-orange/30 focus:border-ltt-orange" placeholder="0.00" value={srvForm.technicianPayout} onChange={e => setSrvForm({ ...srvForm, technicianPayout: Number(e.target.value) })} />
                                     <p className="text-[8px] font-black uppercase text-text-muted opacity-40 tracking-[0.2em] mt-3 italic text-left">This amount will be automatically credited to the primary technician upon job completion.</p>
                                 </div>
                             </div>
 
-                            <button className="w-full py-5 bg-accent-blue text-white rounded-[1.5rem] font-black uppercase text-sm tracking-[0.3em] shadow-2xl shadow-accent-blue/40 transition-all hover:scale-[1.02] active:scale-95"> Initialize Service Node </button>
+                            <button onClick={handleAddService} className="w-full py-5 bg-accent-blue text-white rounded-[1.5rem] font-black uppercase text-sm tracking-[0.3em] shadow-2xl shadow-accent-blue/40 transition-all hover:scale-[1.02] active:scale-95"> Initialize Service Node </button>
                         </div>
                     </div>
                 )}

@@ -158,5 +158,55 @@ CREATE TABLE IF NOT EXISTS public.attendance (
     employee_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
     action TEXT NOT NULL,
     photo_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW() -- INVENTORY PRODUCTS
+    CREATE TABLE IF NOT EXISTS public.inventory_products (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        name TEXT NOT NULL,
+        description TEXT,
+        cost DECIMAL(10, 2) NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        stocks INTEGER DEFAULT 0,
+        min_stocks INTEGER DEFAULT 5,
+        supplier TEXT,
+        investor_linked TEXT,
+        sku TEXT UNIQUE,
+        category TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+-- INVENTORY SERVICES
+CREATE TABLE IF NOT EXISTS public.inventory_services (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    description TEXT,
+    cost DECIMAL(10, 2) DEFAULT 0,
+    price DECIMAL(10, 2) NOT NULL,
+    technician_payout DECIMAL(10, 2) NOT NULL,
+    category TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+-- RLS for Inventory
+ALTER TABLE public.inventory_products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inventory_services ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public products are visible to everyone" ON public.inventory_products FOR
+SELECT USING (true);
+CREATE POLICY "Public services are visible to everyone" ON public.inventory_services FOR
+SELECT USING (true);
+CREATE POLICY "Staff can manage products" ON public.inventory_products FOR ALL USING (true);
+-- INVESTORS
+CREATE TABLE IF NOT EXISTS public.investors (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    investment DECIMAL(15, 2) NOT NULL,
+    passive_share INTEGER NOT NULL,
+    term_share INTEGER NOT NULL,
+    status TEXT DEFAULT 'Active',
+    joined_date DATE DEFAULT CURRENT_DATE,
+    total_payout DECIMAL(15, 2) DEFAULT 0,
+    running_payout DECIMAL(15, 2) DEFAULT 0,
+    history JSONB DEFAULT '[]',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.investors ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public investors visible to admin" ON public.investors FOR
+SELECT USING (true);
+CREATE POLICY "Admin manage investors" ON public.investors FOR ALL USING (true);

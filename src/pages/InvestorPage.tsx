@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Landmark,
     TrendingUp,
@@ -18,6 +18,7 @@ import {
     ArrowUpRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 
 interface PayoutEntry {
     date: string;
@@ -42,43 +43,67 @@ interface Investor {
 const InvestorPage: React.FC = () => {
     const [search, setSearch] = useState('');
     const [selectedInvestor, setSelectedInvestor] = useState<Investor | null>(null);
-    const [investors] = useState<Investor[]>([
-        {
-            id: 'i1',
-            name: 'Althea Reyes',
-            investment: 200000,
-            passive_share: 15,
-            term_share: 30,
-            status: 'Active',
-            joinedDate: '2023-11-01',
-            total_payout: 45000,
-            running_payout: 4250.50,
-            history: [
-                { date: '2024-02-15', amount: 12500, type: 'Passive', period: 'Jan 2024' },
-                { date: '2024-01-15', amount: 11000, type: 'Passive', period: 'Dec 2023' },
-            ]
-        },
-        {
-            id: 'i2',
-            name: 'Angelique Tech',
-            investment: 100000,
-            passive_share: 8,
-            term_share: 20,
-            status: 'Active',
-            joinedDate: '2024-02-15',
-            total_payout: 12500,
-            running_payout: 1840.25,
-            history: [
-                { date: '2024-02-20', amount: 5000, type: 'Term', period: 'Feb 2024 (Advance)' },
-            ]
+    const [isAddingInvestor, setIsAddingInvestor] = useState(false);
+    const [newInvestor, setNewInvestor] = useState({ name: '', investment: 0, passive_share: 0, term_share: 0 });
+    const [investors, setInvestors] = useState<Investor[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+
+    const fetchInvestors = async () => {
+        setLoading(true);
+        const { data, error } = await supabase.from('investors').select('*');
+        if (!error && data) {
+            setInvestors(data.map((i: any) => ({
+                id: i.id,
+                name: i.name,
+                investment: Number(i.investment),
+                passive_share: i.passive_share,
+                term_share: i.term_share,
+                status: (i.status as any) || 'Active',
+                joinedDate: i.joined_date || i.created_at,
+                total_payout: Number(i.total_payout || 0),
+                running_payout: Number(i.running_payout || 0),
+                history: i.history || []
+            })));
         }
-    ]);
+        setLoading(false);
+    };
+
+    const handleAddInvestor = async () => {
+        if (!newInvestor.name || newInvestor.investment <= 0) return;
+        setSubmitting(true);
+
+        const { error } = await supabase.from('investors').insert([{
+            name: newInvestor.name,
+            investment: newInvestor.investment,
+            passive_share: newInvestor.passive_share,
+            term_share: newInvestor.term_share,
+            status: 'Active',
+            total_payout: 0,
+            running_payout: 0,
+            history: []
+        }]);
+
+        setSubmitting(false);
+
+        if (!error) {
+            setIsAddingInvestor(false);
+            setNewInvestor({ name: '', investment: 0, passive_share: 0, term_share: 0 });
+            fetchInvestors();
+        } else {
+            console.error("Failed to add investor:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchInvestors();
+    }, []);
 
     const stats = [
-        { label: 'Total AUM', val: '₱' + investors.reduce((s, i) => s + i.investment, 0).toLocaleString(), icon: <Landmark size={20} />, color: 'blue' },
+        { label: 'Total AUM', val: '₱' + (investors.reduce((s, i) => s + i.investment, 0) || 0).toLocaleString(), icon: <Landmark size={20} />, color: 'blue' },
         { label: 'Network Yield', val: '12.4%', icon: <TrendingUp size={20} />, color: 'green' },
         { label: 'Active Shares', val: investors.length, icon: <PieChart size={20} />, color: 'orange' },
-        { label: 'Running Payouts', val: '₱' + investors.reduce((s, i) => s + i.running_payout, 0).toLocaleString(undefined, { minimumFractionDigits: 2 }), icon: <Landmark size={20} />, color: 'red' }
+        { label: 'Running Payouts', val: '₱' + (investors.reduce((s, i) => s + i.running_payout, 0) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 }), icon: <Landmark size={20} />, color: 'red' }
     ];
 
     const shareTiers = [
@@ -103,7 +128,7 @@ const InvestorPage: React.FC = () => {
                 </div>
 
                 <div className="flex gap-4 w-full lg:w-auto">
-                    <button className="flex-1 lg:flex-none h-14 px-8 bg-white/5 hover:bg-white/10 border border-glass-border rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 transition-all">
+                    <button onClick={() => setIsAddingInvestor(true)} className="flex-1 lg:flex-none h-14 px-8 bg-white/5 hover:bg-white/10 border border-glass-border rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 transition-all">
                         <Landmark size={18} /> Capital Injection
                     </button>
                     <button className="flex-1 lg:flex-none h-14 px-8 bg-accent-blue hover:bg-accent-blue/90 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-2xl shadow-accent-blue/40">
@@ -153,7 +178,7 @@ const InvestorPage: React.FC = () => {
                                 onClick={() => setSelectedInvestor(inv)}
                                 className="glass-card p-8 border-ltt-orange/10 bg-black/20 space-y-8 relative overflow-hidden group cursor-pointer hover:border-accent-blue/40 transition-all active:scale-[0.98]"
                             >
-                                <div className="flex justify-between items-start z-10 relative">
+                                <div className="flex justify-between items-start z-10 relative text-left">
                                     <div className="flex items-center gap-4 text-left">
                                         <div className="w-14 h-14 bg-gradient-to-br from-bg-slate to-black rounded-[1.8rem] flex items-center justify-center border border-white/5 shadow-2xl group-hover:scale-110 transition-transform">
                                             <ShieldCheck size={28} className="text-accent-blue opacity-50 shadow-blue-500/50" />
@@ -188,6 +213,7 @@ const InvestorPage: React.FC = () => {
                                 <div className="absolute -bottom-8 -right-8 opacity-5 text-accent-blue pointer-events-none transform rotate-12 scale-[1.5] group-hover:scale-[2] transition-transform"><Award size={120} /></div>
                             </motion.div>
                         ))}
+                        {loading && <div className="col-span-full py-20 text-center italic text-text-muted opacity-40 tracking-widest">Synchronizing Capital Nodes...</div>}
                     </div>
                 </div>
 
@@ -195,7 +221,7 @@ const InvestorPage: React.FC = () => {
                 <div className="space-y-10">
                     <div className="glass-card p-8 border-accent-blue/30 bg-accent-blue/5 space-y-8 text-left">
                         <h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-3 justify-start text-left"><ArrowUpRight size={24} className="text-accent-blue" /> Yield Algorithms</h3>
-                        <div className="space-y-4">
+                        <div className="space-y-4 text-left">
                             {shareTiers.map(tier => (
                                 <div key={tier.amount} className="flex justify-between items-center p-4 bg-black/40 rounded-[1.5rem] border border-glass-border transition-all hover:bg-white/5 group text-left">
                                     <div className="space-y-1 text-left">
@@ -236,7 +262,7 @@ const InvestorPage: React.FC = () => {
                                         <p className="text-[10px] font-black uppercase text-accent-blue tracking-[0.4em] text-left italic">Capital Partner Portfolio</p>
                                         <h2 className="text-4xl font-black uppercase tracking-tight text-left">{selectedInvestor.name}</h2>
                                         <div className="flex gap-4">
-                                            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest italic opacity-60">ID: {selectedInvestor.id.toUpperCase()}</span>
+                                            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest italic opacity-60">ID: {selectedInvestor.id.slice(0, 8).toUpperCase()}</span>
                                             <span className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest text-green-500">NETWORK NODE ACTIVE</span>
                                         </div>
                                     </div>
@@ -280,7 +306,7 @@ const InvestorPage: React.FC = () => {
                                     <div className="space-y-4 text-left">
                                         <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 opacity-40 text-left"><History size={16} /> Disbursal Audit Trail</h4>
                                         <div className="space-y-3 text-left">
-                                            {selectedInvestor.history.map((entry, idx) => (
+                                            {selectedInvestor.history.map((entry: any, idx) => (
                                                 <div key={idx} className="flex justify-between items-center p-5 bg-black/40 border border-white/5 rounded-2xl group hover:border-white/10 transition-all text-left">
                                                     <div className="flex items-center gap-4 text-left">
                                                         <div className="p-3 bg-white/5 rounded-xl text-text-muted"><Calendar size={16} /></div>
@@ -323,6 +349,76 @@ const InvestorPage: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* ADD INVESTOR MODAL */}
+            <AnimatePresence>
+                {isAddingInvestor && (
+                    <div className="fixed inset-0 z-[150] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="w-full max-w-lg bg-bg-slate rounded-[3rem] border border-glass-border p-10 h-auto space-y-8 shadow-2xl text-left"
+                        >
+                            <div className="flex justify-between items-start text-left">
+                                <h2 className="text-3xl font-black uppercase tracking-tight flex items-center gap-4"><Landmark className="text-accent-blue" /> Inject Capital Node</h2>
+                                <button onClick={() => setIsAddingInvestor(false)} className="p-3 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><X size={20} /></button>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-text-muted opacity-60">Entity/Partner Name</label>
+                                    <input
+                                        type="text"
+                                        className="input-field h-14"
+                                        placeholder="Tech Capital Inc."
+                                        value={newInvestor.name}
+                                        onChange={(e) => setNewInvestor({ ...newInvestor, name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-text-muted opacity-60">Initial Capital Infusion (₱)</label>
+                                    <input
+                                        type="number"
+                                        className="input-field h-14 font-mono text-accent-blue font-black"
+                                        placeholder="50000"
+                                        value={newInvestor.investment || ''}
+                                        onChange={(e) => setNewInvestor({ ...newInvestor, investment: Number(e.target.value) })}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-text-muted opacity-60">Passive Share (%)</label>
+                                        <input
+                                            type="number"
+                                            className="input-field h-14 font-mono"
+                                            placeholder="5"
+                                            value={newInvestor.passive_share || ''}
+                                            onChange={(e) => setNewInvestor({ ...newInvestor, passive_share: Number(e.target.value) })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-text-muted opacity-60">Term Share (%)</label>
+                                        <input
+                                            type="number"
+                                            className="input-field h-14 font-mono text-ltt-orange"
+                                            placeholder="15"
+                                            value={newInvestor.term_share || ''}
+                                            onChange={(e) => setNewInvestor({ ...newInvestor, term_share: Number(e.target.value) })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleAddInvestor}
+                                disabled={submitting || !newInvestor.name || newInvestor.investment <= 0}
+                                className="w-full h-16 bg-accent-blue hover:bg-accent-blue/90 disabled:bg-accent-blue/20 disabled:text-white/40 text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] shadow-2xl transition-all"
+                            >
+                                {submitting ? 'Authenticating Node...' : 'Authorize Injection'}
+                            </button>
                         </motion.div>
                     </div>
                 )}

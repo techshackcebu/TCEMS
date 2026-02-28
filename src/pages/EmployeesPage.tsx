@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Users2,
     UserPlus,
@@ -54,27 +54,47 @@ interface Employee {
 }
 
 const EmployeesPage: React.FC = () => {
-    const [employees] = useState<Employee[]>([
-        {
-            id: 'TSMT022826-01',
-            fullName: 'John Doe',
-            nickName: 'Johnny',
-            role: 'MasterTechnician',
-            type: 'Regular',
-            dailyWage: 540,
-            joinedDate: '2026-02-28',
-            status: 'Active',
-            phoneNumber: '+63 912 345 6789',
-            email: 'john@techshack.ph',
-            bloodType: 'O+',
-            address: 'Mandaue City, Cebu',
-            birthday: '1995-05-15',
-            emergencyContact: { name: 'Jane Doe', number: '0917-000-0000' },
-            nationality: 'Filipino',
-            bankInfo: { name: 'BDO', number: '001234567890' },
-            restDays: ['Tuesday', 'Wednesday']
-        },
-    ]);
+    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchEmployees = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('profiles')
+            .select(`
+    *,
+    roles(name)
+        `)
+            .eq('is_active', true);
+
+        if (!error && data) {
+            const mapped: Employee[] = data.map((d: any) => ({
+                id: d.id,
+                fullName: d.full_name,
+                nickName: d.full_name.split(' ')[0], // Fallback
+                role: d.roles?.name || 'OJT/Trainee',
+                type: 'Regular', // Default
+                dailyWage: 540, // Default
+                joinedDate: d.joined_at,
+                status: d.is_active ? 'Active' : 'Inactive',
+                phoneNumber: d.phone || 'N/A',
+                email: d.email || 'N/A',
+                bloodType: 'O+',
+                address: 'N/A',
+                birthday: 'N/A',
+                emergencyContact: { name: 'N/A', number: 'N/A' },
+                nationality: 'Filipino',
+                bankInfo: { name: 'N/A', number: 'N/A' },
+                restDays: ['Sunday']
+            }));
+            setEmployees(mapped);
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchEmployees();
+    }, []);
     const [search, setSearch] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
     const [isAdding, setIsAdding] = useState(false);
@@ -138,9 +158,9 @@ const EmployeesPage: React.FC = () => {
             'Customer Service': 'CS', 'Operations Manager': 'OM', 'OJT/Trainee': 'OT'
         };
         const dateObj = new Date(joinedDate);
-        const dateStr = `${dateObj.getMonth() + 1}${dateObj.getDate()}${dateObj.getFullYear().toString().slice(-2)}`;
+        const dateStr = `${ dateObj.getMonth() + 1 }${ dateObj.getDate() }${ dateObj.getFullYear().toString().slice(-2) } `;
         const sequence = (employees.length + 1).toString().padStart(2, '0');
-        return `TS${roleCodes[role]}${dateStr}-${sequence}`;
+        return `TS${ roleCodes[role] }${ dateStr } -${ sequence } `;
     };
     */
 
@@ -207,55 +227,59 @@ const EmployeesPage: React.FC = () => {
 
             {/* EMPLOYEE GRID */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {employees.filter(e => e.fullName.toLowerCase().includes(search.toLowerCase())).map((emp) => (
-                    <motion.div
-                        layout
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        key={emp.id}
-                        onClick={() => setSelectedEmployee(emp)}
-                        className="glass-card overflow-hidden group hover:border-ltt-orange/30 transition-all border-glass-border relative cursor-pointer"
-                    >
-                        <div className="p-6 space-y-6">
-                            <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-bg-slate to-black rounded-2xl flex items-center justify-center border border-white/5 shadow-inner relative overflow-hidden">
-                                        {emp.profilePicture ? <img src={emp.profilePicture} className="w-full h-full object-cover" /> : <UserCog size={28} className="text-text-muted opacity-40 group-hover:text-ltt-orange group-hover:opacity-100 transition-all" />}
+                {loading ? (
+                    <div className="col-span-full py-20 flex justify-center italic text-text-muted">Initializing personnel nodes...</div>
+                ) : (
+                    employees.filter(e => e.fullName.toLowerCase().includes(search.toLowerCase())).map((emp) => (
+                        <motion.div
+                            layout
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            key={emp.id}
+                            onClick={() => setSelectedEmployee(emp)}
+                            className="glass-card overflow-hidden group hover:border-ltt-orange/30 transition-all border-glass-border relative cursor-pointer"
+                        >
+                            <div className="p-6 space-y-6">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-14 bg-gradient-to-br from-bg-slate to-black rounded-2xl flex items-center justify-center border border-white/5 shadow-inner relative overflow-hidden">
+                                            {emp.profilePicture ? <img src={emp.profilePicture} className="w-full h-full object-cover" /> : <UserCog size={28} className="text-text-muted opacity-40 group-hover:text-ltt-orange group-hover:opacity-100 transition-all" />}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-black uppercase tracking-tight">{emp.fullName}</h3>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-ltt-orange">{emp.role}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-lg font-black uppercase tracking-tight">{emp.fullName}</h3>
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-ltt-orange">{emp.role}</p>
+                                    <div className="text-right">
+                                        <p className="text-[8px] font-black uppercase text-text-muted tracking-widest mb-1">ID TAG</p>
+                                        <p className="text-[10px] font-black font-mono bg-black/40 px-2 py-1 rounded-lg border border-white/5">{emp.id}</p>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-[8px] font-black uppercase text-text-muted tracking-widest mb-1">ID TAG</p>
-                                    <p className="text-[10px] font-black font-mono bg-black/40 px-2 py-1 rounded-lg border border-white/5">{emp.id}</p>
-                                </div>
-                            </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-black/30 p-3 rounded-xl border border-white/5">
-                                    <p className="text-[8px] font-black uppercase text-text-muted tracking-widest mb-1">Contact</p>
-                                    <p className="text-[10px] font-black text-white/80">{emp.phoneNumber}</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                                        <p className="text-[8px] font-black uppercase text-text-muted tracking-widest mb-1">Contact</p>
+                                        <p className="text-[10px] font-black text-white/80">{emp.phoneNumber}</p>
+                                    </div>
+                                    <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                                        <p className="text-[8px] font-black uppercase text-text-muted tracking-widest mb-1">Blood Type</p>
+                                        <p className="text-[10px] font-black text-red-500 uppercase">{emp.bloodType}</p>
+                                    </div>
                                 </div>
-                                <div className="bg-black/30 p-3 rounded-xl border border-white/5">
-                                    <p className="text-[8px] font-black uppercase text-text-muted tracking-widest mb-1">Blood Type</p>
-                                    <p className="text-[10px] font-black text-red-500 uppercase">{emp.bloodType}</p>
-                                </div>
-                            </div>
 
-                            <div className="flex items-center justify-between pt-4 border-t border-glass-border/40">
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-2 h-2 rounded-full animate-pulse ${emp.status === 'Active' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-red-500'}`}></div>
-                                    <span className="text-[9px] font-black uppercase tracking-widest opacity-60">Status: {emp.status}</span>
-                                </div>
-                                <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-text-muted">
-                                    <Clock size={12} /> Joined {new Date(emp.joinedDate).toLocaleDateString()}
+                                <div className="flex items-center justify-between pt-4 border-t border-glass-border/40">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w - 2 h - 2 rounded - full animate - pulse ${emp.status === 'Active' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-red-500'} `}></div>
+                                        <span className="text-[9px] font-black uppercase tracking-widest opacity-60">Status: {emp.status}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-text-muted">
+                                        <Clock size={12} /> Joined {new Date(emp.joinedDate).toLocaleDateString()}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </motion.div>
-                ))}
+                        </motion.div>
+                    ))
+                )}
             </div>
 
             {/* EMPLOYEE PROFILE MODAL */}
@@ -320,7 +344,7 @@ const EmployeesPage: React.FC = () => {
                                         ].map(item => (
                                             <div key={item.label} className="p-4 bg-black/40 rounded-2xl border border-white/5 space-y-2">
                                                 <p className="text-[8px] font-black uppercase text-text-muted tracking-widest flex items-center gap-2">{item.icon} {item.label}</p>
-                                                <p className={`text-xs font-black uppercase tracking-tight ${item.color || ''}`}>{item.val}</p>
+                                                <p className={`text - xs font - black uppercase tracking - tight ${item.color || ''} `}>{item.val}</p>
                                             </div>
                                         ))}
                                     </div>

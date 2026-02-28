@@ -66,14 +66,14 @@ const DashboardPage: React.FC = () => {
                 .select('*', { count: 'exact', head: true })
                 .in('status', ['Pending', 'Checking', 'Repairing', 'Waiting for Parts']);
 
-            const dailyRev = dailyPayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 5450;
-            const monthlyRev = monthlyPayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 142800;
+            const dailyRev = dailyPayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+            const monthlyRev = monthlyPayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
 
             setStats(prev => ({
                 ...prev,
                 dailyRevenue: dailyRev,
                 monthlyRevenue: monthlyRev,
-                activeTickets: activeTicketsCount || 12,
+                activeTickets: activeTicketsCount || 0,
                 investorYieldTotal: monthlyRev * 0.05
             }));
             setLoading(false);
