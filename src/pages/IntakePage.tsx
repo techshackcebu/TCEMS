@@ -149,15 +149,38 @@ const IntakePage: React.FC = () => {
             // --- ONLINE ROUTING ---
             // 1. Upsert Customer
             if (!customerId) {
-                // Insert New Customer
-                const { data: newCust, error: custErr } = await supabase
+                // Fallback check: just in case they didn't trigger the onBlur lookup
+                const { data: existingCust } = await supabase
                     .from('customers')
-                    .insert([{ phone, full_name: fullName || 'Walk-in Customer' }])
-                    .select()
-                    .single();
+                    .select('id, full_name')
+                    .eq('phone', phone)
+                    .maybeSingle();
 
-                if (custErr) throw custErr;
-                customerId = newCust.id;
+                if (existingCust) {
+                    customerId = existingCust.id;
+                    if (fullName && existingCust.full_name !== fullName) {
+                        await supabase.from('customers').update({ full_name: fullName }).eq('id', customerId);
+                    }
+                } else {
+                    // Try to insert
+                    const { data: newCust, error: custErr } = await supabase
+                        .from('customers')
+                        .insert([{ phone, full_name: fullName || 'Walk-in Customer' }])
+                        .select()
+                        .single();
+
+                    if (custErr) {
+                        // One final fallback if insert hits unique constraint at the exact same microsecond
+                        if (custErr.code === '23505') {
+                            const { data: duplicateCust } = await supabase.from('customers').select('id').eq('phone', phone).single();
+                            if (duplicateCust) customerId = duplicateCust.id;
+                        } else {
+                            throw custErr;
+                        }
+                    } else {
+                        customerId = newCust.id;
+                    }
+                }
             } else if (customer && fullName && customer.full_name !== fullName) {
                 // Update existing customer name if changed
                 await supabase.from('customers').update({ full_name: fullName }).eq('id', customerId);
@@ -223,10 +246,10 @@ const IntakePage: React.FC = () => {
                 setCsTroubleshooting([]);
             }, 500);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Intake Error:", error);
-            const errMessage = error instanceof Error ? error.message : 'Unknown error';
-            alert(`Error saving intake: ${errMessage}`);
+            const errMessage = error?.message || error?.details || JSON.stringify(error) || 'Unknown error';
+            alert(`Error saving intake: ${errMessage}\nCheck your Supabase RLS Policies!`);
         } finally {
             setIsSaving(false);
         }
