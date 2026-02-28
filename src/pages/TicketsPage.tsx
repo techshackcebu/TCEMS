@@ -28,8 +28,7 @@ interface Ticket {
     device_id: string;
     devices: { brand: string; model: string };
     created_at: string;
-    fault_report?: string;
-    probing?: any;
+    probing_history?: any;
 }
 
 interface TicketsPageProps {
@@ -120,7 +119,7 @@ const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
             .from('repair_tickets')
             .update({
                 status,
-                probing: { ...selectedExpertTicket.probing, expert_data: data }
+                probing_history: { ...selectedExpertTicket.probing_history, expert_data: data }
             })
             .eq('id', selectedExpertTicket.id);
 
@@ -137,7 +136,7 @@ const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
             .from('repair_tickets')
             .update({
                 status,
-                probing: { ...selectedTesterTicket.probing, tester_data: data }
+                probing_history: { ...selectedTesterTicket.probing_history, tester_data: data }
             })
             .eq('id', selectedTesterTicket.id);
 
@@ -223,8 +222,8 @@ const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
                                         <p className="text-text-muted text-xs font-bold uppercase tracking-widest">{ticket.customers.full_name} • {ticket.customers.phone}</p>
                                     </div>
 
-                                    <div className="p-3 bg-black/30 rounded-xl text-xs italic text-text-muted border-l-2 border-ltt-orange group-hover:bg-black/50 transition-all">
-                                        "{ticket.fault_report || 'Default diagnostic check needed'}"
+                                    <div className="p-3 bg-black/30 rounded-xl text-xs italic text-text-muted border-l-2 border-ltt-orange group-hover:bg-black/50 transition-all font-medium truncate">
+                                        "{ticket.probing_history?.faults?.join(', ') || 'Pending initial diagnostic check'}"
                                     </div>
 
                                     <div className="flex justify-between items-center pt-4 border-t border-glass-border">
@@ -257,9 +256,9 @@ const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
                             number: selectedExpertTicket.ticket_number.toString(),
                             customer: selectedExpertTicket.customers.full_name,
                             device: `${selectedExpertTicket.devices.brand} ${selectedExpertTicket.devices.model}`,
-                            fault: selectedExpertTicket.fault_report || '',
-                            csTroubleshooting: (selectedExpertTicket as any).probing?.csTroubleshooting || [],
-                            probing: selectedExpertTicket.probing
+                            fault: selectedExpertTicket.probing_history?.faults?.join(', ') || 'System Dead',
+                            csTroubleshooting: selectedExpertTicket.probing_history?.cs_best_practices || [],
+                            probing: selectedExpertTicket.probing_history
                         }}
                         onUpdateStatus={handleUpdateExpertStatus}
                         onClose={() => setSelectedExpertTicket(null)}
@@ -276,7 +275,7 @@ const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
                             number: selectedTesterTicket.ticket_number.toString(),
                             customer: selectedTesterTicket.customers.full_name,
                             device: `${selectedTesterTicket.devices.brand} ${selectedTesterTicket.devices.model}`,
-                            diagnosis: selectedTesterTicket.probing?.expert_data?.diagnosis || ''
+                            diagnosis: selectedTesterTicket.probing_history?.expert_data?.diagnosis || ''
                         }}
                         onUpdateStatus={handleUpdateTesterStatus}
                         onClose={() => setSelectedTesterTicket(null)}

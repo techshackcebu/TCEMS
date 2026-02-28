@@ -151,8 +151,7 @@ SELECT USING (true);
 CREATE POLICY "Staff can view all inquiries" ON public.parts_inquiry FOR
 SELECT USING (true);
 CREATE POLICY "Staff can view all payments" ON public.payments FOR
-SELECT USING (true);
-CREATE TABLE IF NOT EXISTS public.attendance (
+SELECT USING (true);CREATE TABLE IF NOT EXISTS public.attendance (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     employee_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
     action TEXT NOT NULL,

@@ -13,6 +13,8 @@ import {
     ShieldCheck
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface PayoutDetail {
     id: string;
@@ -79,6 +81,42 @@ const PayrollPage: React.FC = () => {
         }, 800);
     };
 
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+
+        doc.setFillColor(34, 40, 49); // Dark background feel
+        doc.rect(0, 0, 210, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('TECHSHACK TCEMS', 14, 20);
+
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(14);
+        doc.text(`Payroll Disbursal Ledger: ${activePeriod}`, 14, 40);
+
+        const tableColumn = ["Personnel", "Duty Cycle", "Base Pay", "De-minimis", "Commission", "Net Pay"];
+        const tableRows = payouts.map(p => [
+            `${p.employee_name} (${p.role})`,
+            `${p.days_worked} Days / ${p.lates} Lates`,
+            `PHP ${(p.days_worked * p.daily_wage).toLocaleString()}`,
+            `PHP ${((p.days_worked - p.lates) * p.deminimis_daily).toFixed(2)}`,
+            `PHP ${p.commissions.toLocaleString()}`,
+            `PHP ${p.net_pay.toLocaleString()}`
+        ]);
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 50,
+            theme: 'grid',
+            headStyles: { fillColor: [249, 115, 22] }, // ltt-orange
+            alternateRowStyles: { fillColor: [240, 240, 240] }
+        });
+
+        doc.save(`techshack_payroll_${activePeriod}.pdf`);
+    };
+
     const stats = [
         { label: 'Total Payroll', val: '₱' + payouts.reduce((s, p) => s + p.net_pay, 0).toLocaleString(), icon: <DollarSign size={18} />, color: 'blue' },
         { label: 'Penalty Savings', val: '₱' + (payouts.reduce((s, p) => s + p.lates, 0) * DAILY_DEMINIMIS).toFixed(2), icon: <TrendingUp size={18} />, color: 'green' },
@@ -115,7 +153,7 @@ const PayrollPage: React.FC = () => {
                     <button className="bg-ltt-orange hover:bg-ltt-orange/90 text-white px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest flex items-center gap-2 shadow-lg shadow-ltt-orange/20 transition-all hover:scale-105 active:scale-95">
                         <Receipt size={14} /> Process Batch
                     </button>
-                    <button className="bg-white/5 hover:bg-white/10 text-white border border-glass-border px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest flex items-center gap-2 shadow-lg transition-all hover:scale-105 active:scale-95">
+                    <button onClick={handleExportPDF} className="bg-white/5 hover:bg-white/10 text-white border border-glass-border px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest flex items-center gap-2 shadow-lg transition-all hover:scale-105 active:scale-95">
                         <Download size={14} /> Export
                     </button>
                 </div>

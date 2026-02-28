@@ -20,7 +20,7 @@ interface Ticket {
     customers: { full_name: string; phone: string };
     devices: { brand: string; model: string };
     status: string;
-    probing: any;
+    probing_history: any;
     final_price?: number;
 }
 
@@ -55,9 +55,10 @@ const POSBoard: React.FC = () => {
     };
 
     const calculateTotals = (ticket: Ticket) => {
-        const expertData = ticket.probing?.expert_data || {};
+        const expertData = ticket.probing_history?.expert_data || {};
         const parts = expertData.parts || [];
-        const partsTotal = parts.reduce((sum: number, p: any) => sum + (Number(p.retailPrice) || 0), 0);
+        // `price` is the property used in ExpertView bounds for retail pricing
+        const partsTotal = parts.reduce((sum: number, p: any) => sum + (Number(p.price) || 0), 0);
         const labor = Number(expertData.laborPrice) || 0;
         return { partsTotal, labor, grandTotal: partsTotal + labor };
     };
@@ -67,7 +68,7 @@ const POSBoard: React.FC = () => {
         setProcessing(true);
 
         const { grandTotal } = calculateTotals(selectedTicket);
-        const prevPaid = Number(selectedTicket.probing?.payment_history?.total_paid) || 0;
+        const prevPaid = Number(selectedTicket.probing_history?.payment_history?.total_paid) || 0;
         const newTotalPaid = prevPaid + paymentAmount;
 
         const paymentRecord = {
@@ -79,7 +80,7 @@ const POSBoard: React.FC = () => {
 
         const newPaymentHistory = {
             total_paid: newTotalPaid,
-            history: [...(selectedTicket.probing?.payment_history?.history || []), paymentRecord]
+            history: [...(selectedTicket.probing_history?.payment_history?.history || []), paymentRecord]
         };
 
         const isFullyPaid = newTotalPaid >= grandTotal;
@@ -87,11 +88,12 @@ const POSBoard: React.FC = () => {
         const { error } = await supabase
             .from('repair_tickets')
             .update({
-                probing: {
-                    ...selectedTicket.probing,
+                probing_history: {
+                    ...selectedTicket.probing_history,
                     payment_history: newPaymentHistory,
                     payment_status: isFullyPaid ? 'Paid' : 'Partial'
-                }
+                },
+                status: isFullyPaid ? 'Released' : selectedTicket.status // Auto-move to release
             })
             .eq('id', selectedTicket.id);
 
@@ -138,7 +140,7 @@ const POSBoard: React.FC = () => {
                         <div className="flex justify-center p-20"><div className="w-12 h-12 border-4 border-ltt-orange border-t-transparent rounded-full animate-spin"></div></div>
                     ) : filteredTickets.map(ticket => {
                         const { grandTotal } = calculateTotals(ticket);
-                        const paid = ticket.probing?.payment_history?.total_paid || 0;
+                        const paid = ticket.probing_history?.payment_history?.total_paid || 0;
                         const balance = grandTotal - paid;
 
                         return (
@@ -202,7 +204,7 @@ const POSBoard: React.FC = () => {
                                     <div className="text-right">
                                         <span>₱{calculateTotals(selectedTicket).partsTotal.toLocaleString()}</span>
                                         <div className="text-[9px] text-text-muted italic opacity-40 mt-0.5">
-                                            {(selectedTicket.probing?.expert_data?.parts || []).length} components required
+                                            {(selectedTicket.probing_history?.expert_data?.parts || []).length} components required
                                         </div>
                                     </div>
                                 </div>
@@ -210,10 +212,10 @@ const POSBoard: React.FC = () => {
                                     <span className="text-sm font-black uppercase tracking-tighter">Grand Total</span>
                                     <span className="text-2xl font-black font-mono text-ltt-orange">₱{calculateTotals(selectedTicket).grandTotal.toLocaleString()}</span>
                                 </div>
-                                {selectedTicket.probing?.payment_history?.total_paid > 0 && (
+                                {selectedTicket.probing_history?.payment_history?.total_paid > 0 && (
                                     <div className="bg-green-500/5 border border-green-500/20 p-2 rounded-lg flex justify-between items-center">
                                         <span className="text-[10px] font-black uppercase text-green-500 tracking-widest">Already Paid</span>
-                                        <span className="text-xs font-black font-mono text-green-500">- ₱{Number(selectedTicket.probing.payment_history.total_paid).toLocaleString()}</span>
+                                        <span className="text-xs font-black font-mono text-green-500">- ₱{Number(selectedTicket.probing_history.payment_history.total_paid).toLocaleString()}</span>
                                     </div>
                                 )}
                             </div>
@@ -252,8 +254,8 @@ const POSBoard: React.FC = () => {
                                     />
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => setPaymentAmount(calculateTotals(selectedTicket).grandTotal - (selectedTicket.probing?.payment_history?.total_paid || 0))} className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-glass-border rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all">Full Payment</button>
-                                    <button onClick={() => setPaymentAmount((calculateTotals(selectedTicket).grandTotal - (selectedTicket.probing?.payment_history?.total_paid || 0)) / 2)} className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-glass-border rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all">Half Pay (50%)</button>
+                                    <button onClick={() => setPaymentAmount(calculateTotals(selectedTicket).grandTotal - (selectedTicket.probing_history?.payment_history?.total_paid || 0))} className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-glass-border rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all">Full Payment</button>
+                                    <button onClick={() => setPaymentAmount((calculateTotals(selectedTicket).grandTotal - (selectedTicket.probing_history?.payment_history?.total_paid || 0)) / 2)} className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-glass-border rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all">Half Pay (50%)</button>
                                 </div>
                             </div>
 
@@ -276,8 +278,8 @@ const POSBoard: React.FC = () => {
                                                 customerPhone: selectedTicket.customers.phone,
                                                 deviceBrand: selectedTicket.devices.brand,
                                                 deviceModel: selectedTicket.devices.model,
-                                                serialNumber: selectedTicket.probing?.serial || 'N/A',
-                                                issue: selectedTicket.probing?.faults || 'Repair complete',
+                                                serialNumber: selectedTicket.probing_history?.serial || 'N/A',
+                                                issue: selectedTicket.probing_history?.faults || 'Repair complete',
                                                 totalAmount: calculateTotals(selectedTicket).grandTotal,
                                                 date: new Date().toLocaleDateString(),
                                                 type: 'POS'

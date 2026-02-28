@@ -14,6 +14,7 @@ import {
     RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 
 type AttendanceStatus = 'OUT' | 'IN' | 'LUNCH_OUT';
 
@@ -84,42 +85,62 @@ const KioskTerminal: React.FC = () => {
 
     const handleVerification = async () => {
         setVerifying(true);
-        setTimeout(() => {
-            if (pin === '1234') {
+        if (pin === '1234') {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('id, full_name, roles(name)')
+                .limit(1)
+                .single();
+
+            if (!error && data) {
                 setActiveEmployee({
-                    id: '1',
-                    name: 'John Doe',
-                    role: 'MasterTech',
+                    id: data.id,
+                    name: data.full_name,
+                    role: (data.roles as any)?.name || 'Staff',
                     status: 'OUT',
-                    lastAction: '2024-02-28 17:00'
+                    lastAction: new Date().toISOString()
                 });
                 startCamera();
             } else {
-                setErrorMessage("Invalid Employee PIN");
+                setErrorMessage("Database sync error or no profiles found.");
                 setPin('');
-                setVerifying(false);
             }
-        }, 1000);
+        } else {
+            setErrorMessage("Invalid Employee PIN");
+            setPin('');
+        }
+        setVerifying(false);
     };
 
-    const processAttendance = (action: 'CLOCK_IN' | 'LUNCH_OUT' | 'LUNCH_IN' | 'CLOCK_OUT') => {
+    const processAttendance = async (action: 'CLOCK_IN' | 'LUNCH_OUT' | 'LUNCH_IN' | 'CLOCK_OUT') => {
         if (!capturedImage) {
             setErrorMessage("Facial identification required");
             return;
         }
 
         setVerifying(true);
-        setTimeout(() => {
-            setSuccessMessage(`${action.replace('_', ' ')} SUCCESSFUL: ${activeEmployee?.name}`);
-            setVerifying(false);
+        const { error } = await supabase.from('attendance').insert([{
+            employee_id: activeEmployee?.id,
+            action: action,
+            photo_url: capturedImage
+        }]);
 
-            setTimeout(() => {
-                setSuccessMessage(null);
-                setActiveEmployee(null);
-                setCapturedImage(null);
-                setPin('');
-            }, 3000);
-        }, 1500);
+        if (error) {
+            console.error(error);
+            setErrorMessage("System Log Error. Network Offline.");
+            setVerifying(false);
+            return;
+        }
+
+        setSuccessMessage(`${action.replace('_', ' ')} SUCCESSFUL: ${activeEmployee?.name}`);
+        setVerifying(false);
+
+        setTimeout(() => {
+            setSuccessMessage(null);
+            setActiveEmployee(null);
+            setCapturedImage(null);
+            setPin('');
+        }, 3000);
     };
 
     return (
