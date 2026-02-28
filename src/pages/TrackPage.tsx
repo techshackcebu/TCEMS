@@ -165,9 +165,9 @@ const TrackPage: React.FC = () => {
                         <div className="glass-card p-10 flex flex-col md:flex-row justify-between items-center bg-ltt-orange/5 border-ltt-orange/20">
                             <div>
                                 <span className="text-[10px] font-black uppercase text-ltt-orange bg-ltt-orange/10 px-3 py-1 rounded-full mb-3 inline-block tracking-widest">Repair in Progress</span>
-                                <h1 className="text-4xl font-black uppercase tracking-tighter">{ticket.devices.brand} {ticket.devices.model}</h1>
+                                <h1 className="text-4xl font-black uppercase tracking-tighter">{ticket.devices?.brand || 'Unknown'} {ticket.devices?.model || 'Device'}</h1>
                                 <p className="text-text-muted text-sm font-bold uppercase italic mt-1 flex items-center gap-2 opacity-60">
-                                    Owned by {ticket.customers.full_name.split(' ')[0]} <ChevronRight size={12} /> TKT-{ticket.ticket_number}
+                                    Owned by {ticket.customers?.full_name?.split(' ')[0] || 'Unknown'} <ChevronRight size={12} /> TKT-{ticket.ticket_number}
                                 </p>
                             </div>
                             <div className="text-right mt-6 md:mt-0">

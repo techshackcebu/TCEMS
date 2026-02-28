@@ -93,9 +93,9 @@ const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
 
     const filteredTickets = tickets.filter(t => {
         const matchesSearch =
-            t.ticket_number.toString().includes(search) ||
-            t.customers.full_name.toLowerCase().includes(search.toLowerCase()) ||
-            t.customers.phone.includes(search);
+            t.ticket_number?.toString()?.includes(search) ||
+            t.customers?.full_name?.toLowerCase()?.includes(search.toLowerCase()) ||
+            t.customers?.phone?.includes(search);
 
         const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
 
@@ -216,10 +216,10 @@ const TicketsPage: React.FC<TicketsPageProps> = ({ onSelectTicket }) => {
                                 <div className="space-y-3">
                                     <div>
                                         <h3 className="text-lg font-bold flex items-center justify-between tracking-tight">
-                                            {ticket.devices.brand} {ticket.devices.model}
+                                            {ticket.devices?.brand || 'Unknown'} {ticket.devices?.model || 'Device'}
                                             <span className="text-text-muted text-[10px] font-black font-mono">#{ticket.ticket_number}</span>
                                         </h3>
-                                        <p className="text-text-muted text-xs font-bold uppercase tracking-widest">{ticket.customers.full_name} • {ticket.customers.phone}</p>
+                                        <p className="text-text-muted text-xs font-bold uppercase tracking-widest">{ticket.customers?.full_name || 'Unknown'} • {ticket.customers?.phone || 'N/A'}</p>
                                     </div>
 
                                     <div className="p-3 bg-black/30 rounded-xl text-xs italic text-text-muted border-l-2 border-ltt-orange group-hover:bg-black/50 transition-all font-medium truncate">

@@ -78,8 +78,8 @@ const CustomersPage: React.FC = () => {
     };
 
     const filteredCustomers = customers.filter(c =>
-        c.full_name.toLowerCase().includes(search.toLowerCase()) ||
-        c.phone.includes(search)
+        c.full_name?.toLowerCase()?.includes(search.toLowerCase()) ||
+        c.phone?.includes(search)
     );
 
     const stats = [
@@ -269,7 +269,7 @@ const CustomersPage: React.FC = () => {
                                                             <Smartphone size={24} />
                                                         </div>
                                                         <div className="text-left">
-                                                            <h4 className="font-black uppercase tracking-tight">{ticket.devices.brand} {ticket.devices.model}</h4>
+                                                            <h4 className="font-black uppercase tracking-tight">{ticket.devices?.brand || 'Unknown'} {ticket.devices?.model || 'Device'}</h4>
                                                             <div className="flex items-center gap-3 mt-1">
                                                                 <span className="text-[10px] font-black tracking-widest text-text-muted opacity-40 uppercase">TKT-{ticket.ticket_number}</span>
                                                                 <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${ticket.status === 'Released' || ticket.status === 'Done' ? 'bg-green-500/10 text-green-500' : 'bg-ltt-orange/10 text-ltt-orange'}`}>

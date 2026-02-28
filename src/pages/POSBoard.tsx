@@ -110,8 +110,8 @@ const POSBoard: React.FC = () => {
     };
 
     const filteredTickets = tickets.filter(t =>
-        t.ticket_number.toString().includes(search) ||
-        t.customers.full_name.toLowerCase().includes(search.toLowerCase())
+        t.ticket_number?.toString()?.includes(search) ||
+        t.customers?.full_name?.toLowerCase()?.includes(search.toLowerCase())
     );
 
     return (
@@ -156,8 +156,8 @@ const POSBoard: React.FC = () => {
                             >
                                 <div className="space-y-1">
                                     <span className="text-[10px] font-black uppercase text-text-muted">Ticket #{ticket.ticket_number}</span>
-                                    <h3 className="text-lg font-black leading-none">{ticket.customers.full_name}</h3>
-                                    <p className="text-xs font-bold text-text-muted uppercase italic">{ticket.devices.brand} {ticket.devices.model}</p>
+                                    <h3 className="text-lg font-black leading-none">{ticket.customers?.full_name || 'Unknown'}</h3>
+                                    <p className="text-xs font-bold text-text-muted uppercase italic">{ticket.devices?.brand || 'Unknown'} {ticket.devices?.model || 'Device'}</p>
                                 </div>
                                 <div className="text-right space-y-1">
                                     <p className="text-xs font-black uppercase text-text-muted">Remaining Balance</p>
