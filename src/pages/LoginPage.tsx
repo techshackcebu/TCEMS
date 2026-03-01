@@ -8,6 +8,15 @@ const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [branchName, setBranchName] = useState('Mandaue Center HUB');
+
+    React.useEffect(() => {
+        const fetchBranch = async () => {
+            const { data } = await supabase.from('system_config').select('*').eq('key', 'BRANCH_INFO').single();
+            if (data?.value?.name) setBranchName(data.value.name);
+        };
+        fetchBranch();
+    }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -86,7 +95,7 @@ const LoginPage: React.FC = () => {
 
                 <div className="mt-10 border-t border-glass-border pt-6 flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-text-muted opacity-40">
                     <span>Encrypted Socket SHA-256</span>
-                    <span>Mandaue Center HUB</span>
+                    <span>{branchName}</span>
                 </div>
             </motion.div>
         </div>

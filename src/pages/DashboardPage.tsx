@@ -32,6 +32,7 @@ interface WarRoomStats {
 
 const DashboardPage: React.FC = () => {
     const [target, setTarget] = useState(7040);
+    const [currencySymbol, setCurrencySymbol] = useState('₱');
     const [isEditingTarget, setIsEditingTarget] = useState(false);
     const [stats, setStats] = useState<WarRoomStats>({
         dailyRevenue: 5450,
@@ -45,6 +46,16 @@ const DashboardPage: React.FC = () => {
     const [auditLogs, setAuditLogs] = useState<any[]>([]);
 
     React.useEffect(() => {
+        const fetchSystemConfig = async () => {
+            const { data } = await supabase.from('system_config').select('*');
+            if (data) {
+                const targetConfig = data.find(c => c.key === 'DAILY_REVENUE_TARGET');
+                const currencyConfig = data.find(c => c.key === 'BASE_CURRENCY');
+                if (targetConfig) setTarget(Number(targetConfig.value));
+                if (currencyConfig) setCurrencySymbol(currencyConfig.value.symbol);
+            }
+        };
+
         const fetchStats = async () => {
             setLoading(true);
             const today = new Date();
@@ -94,6 +105,7 @@ const DashboardPage: React.FC = () => {
             setLoading(false);
         };
 
+        fetchSystemConfig();
         fetchStats();
     }, []);
 
@@ -102,10 +114,10 @@ const DashboardPage: React.FC = () => {
     const performancePct = Math.min(100, (stats.dailyRevenue / target) * 100);
 
     const cards = [
-        { label: 'MTD Revenue', val: '₱' + stats.monthlyRevenue.toLocaleString(), sub: '+12.4%', icon: <TrendingUp size={20} /> },
+        { label: 'MTD Revenue', val: currencySymbol + stats.monthlyRevenue.toLocaleString(), sub: '+12.4%', icon: <TrendingUp size={20} /> },
         { label: 'Active Queue', val: stats.activeTickets, sub: 'L3 Specialist', icon: <Activity size={20} /> },
         { label: 'Efficiency', val: stats.l3Efficiency + '%', sub: 'Technical', icon: <Zap size={20} /> },
-        { label: 'Investor Yield', val: '₱' + stats.investorYieldTotal.toLocaleString(), sub: 'Equity', icon: <PieChart size={20} /> },
+        { label: 'Investor Yield', val: currencySymbol + stats.investorYieldTotal.toLocaleString(), sub: 'Equity', icon: <PieChart size={20} /> },
     ];
 
     return (
@@ -225,7 +237,7 @@ const DashboardPage: React.FC = () => {
                                         />
                                     ) : (
                                         <div onClick={() => setIsEditingTarget(true)} className="group cursor-pointer flex items-center gap-2 justify-start">
-                                            <span className="text-2xl font-black font-mono text-text-muted opacity-40 group-hover:text-ltt-orange group-hover:opacity-100 transition-all">₱{target.toLocaleString()}</span>
+                                            <span className="text-2xl font-black font-mono text-text-muted opacity-40 group-hover:text-ltt-orange group-hover:opacity-100 transition-all">{currencySymbol}{target.toLocaleString()}</span>
                                             <Settings2 size={14} className="text-text-muted opacity-0 group-hover:opacity-100" />
                                         </div>
                                     )}
